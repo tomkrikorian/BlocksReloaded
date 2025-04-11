@@ -13,6 +13,9 @@ struct HandTrackingComponent: Component {
     /// A lookup that maps each joint name to the entity that represents it.
     var fingers: [HandSkeleton.JointName: Entity] = [:]
     
+    /// The sphere entity that appears when pinching
+    var pinchSphere: ModelEntity?
+    
     /// Creates a new hand-tracking component.
     /// - Parameter chirality: The chirality of the hand target.
     init(chirality: AnchoringComponent.Target.Chirality) {

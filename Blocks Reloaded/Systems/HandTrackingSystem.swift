@@ -81,7 +81,65 @@ struct HandTrackingSystem: System {
                         relativeTo: nil
                     )
                 }
+                
+                // Check for pinch between thumb and index finger
+                let thumbTip = handSkeleton.joint(.thumbTip)
+                let indexTip = handSkeleton.joint(.indexFingerTip)
+                
+                let thumbPosition = thumbTip.anchorFromJointTransform.columns.3
+                let indexPosition = indexTip.anchorFromJointTransform.columns.3
+                
+                // Extract xyz components from the position vectors
+                let thumbPos = SIMD3<Float>(thumbPosition.x, thumbPosition.y, thumbPosition.z)
+                let indexPos = SIMD3<Float>(indexPosition.x, indexPosition.y, indexPosition.z)
+                
+                let distance = simd_distance(thumbPos, indexPos)
+                let isPinching = distance < 0.03 // Adjust this threshold as needed
+                
+                // Debug logging
+                print("Thumb position: \(thumbPos)")
+                print("Index position: \(indexPos)")
+                print("Distance: \(distance)")
+                print("Is pinching: \(isPinching)")
+                
+                // Create or update the pinch sphere
+                if isPinching {
+                    if handComponent.pinchSphere == nil {
+                        // Create the sphere if it doesn't exist
+                        let sphere = ModelEntity(
+                            mesh: .generateSphere(radius: 0.02),
+                            materials: [SimpleMaterial(color: .red, isMetallic: false)]
+                        )
+                        entity.addChild(sphere)
+                        handComponent.pinchSphere = sphere
+                        print("Created new sphere")
+                    }
+                    
+                    // Position the sphere between thumb and index finger
+                    if let sphere = handComponent.pinchSphere {
+                        // Convert positions to world space
+                        let thumbWorldPos = handAnchor.originFromAnchorTransform * thumbPosition
+                        let indexWorldPos = handAnchor.originFromAnchorTransform * indexPosition
+                        
+                        let thumbWorldPos3 = SIMD3<Float>(thumbWorldPos.x, thumbWorldPos.y, thumbWorldPos.z)
+                        let indexWorldPos3 = SIMD3<Float>(indexWorldPos.x, indexWorldPos.y, indexWorldPos.z)
+                        
+                        let midpoint = (thumbWorldPos3 + indexWorldPos3) * 0.5
+                        sphere.position = midpoint
+                        print("Sphere position: \(sphere.position)")
+                    }
+                } else {
+                    // Remove the sphere if not pinching
+                    if let sphere = handComponent.pinchSphere {
+                        sphere.removeFromParent()
+                        handComponent.pinchSphere = nil
+                        print("Removed sphere")
+                    }
+                }
             }
+            
+            // Apply the updated hand component back to the hand entity
+            entity.components.set(handComponent)
         }
     }
     
