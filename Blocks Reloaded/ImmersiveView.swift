@@ -12,6 +12,13 @@ import RealityKitContent
 struct ImmersiveView: View {
     var body: some View {
         RealityView { content in
+            // Create a root entity for the scene
+            let rootEntity = Entity()
+            content.add(rootEntity)
+            
+            // Store the root entity for cube placement
+            HandTrackingSystem.mainSceneContent = rootEntity
+            
             // Add the initial RealityKit content
             if let immersiveContentEntity = try? await Entity(named: "Immersive", in: realityKitContentBundle) {
                 content.add(immersiveContentEntity)

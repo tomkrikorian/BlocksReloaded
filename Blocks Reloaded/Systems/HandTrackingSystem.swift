@@ -18,6 +18,9 @@ struct HandTrackingSystem: System {
 
     /// The most recent anchor that the provider detects on the right hand.
     static var latestRightHand: HandAnchor?
+    
+    /// The main scene content
+    static var mainSceneContent: Entity?
 
     init(scene: RealityKit.Scene) {
         Task { await Self.runSession() }
@@ -53,6 +56,11 @@ struct HandTrackingSystem: System {
     /// - Parameter context: The context for the system to update.
     func update(context: SceneUpdateContext) {
         let handEntities = context.entities(matching: Self.query, updatingSystemWhen: .rendering)
+        
+        var leftHandSphere: ModelEntity?
+        var rightHandSphere: ModelEntity?
+        var leftHandEntity: Entity?
+        var rightHandEntity: Entity?
 
         for entity in handEntities {
             guard var handComponent = entity.components[HandTrackingComponent.self] else { continue }
@@ -71,30 +79,19 @@ struct HandTrackingSystem: System {
 
             // Iterate through all of the anchors on the hand skeleton.
             if let handSkeleton = handAnchor.handSkeleton {
-                for (jointName, jointEntity) in handComponent.fingers {
-                    /// The current transform of the person's hand joint.
-                    let anchorFromJointTransform = handSkeleton.joint(jointName).anchorFromJointTransform
-
-                    // Update the joint entity to match the transform of the person's hand joint.
-                    jointEntity.setTransformMatrix(
-                        handAnchor.originFromAnchorTransform * anchorFromJointTransform,
-                        relativeTo: nil
-                    )
-                }
+                // Update joint positions
+                self.updateJointPositions(handSkeleton: handSkeleton, handComponent: handComponent, handAnchor: handAnchor)
                 
-                // Check for pinch between thumb and index finger
-                let thumbTip = handSkeleton.joint(.thumbTip)
-                let indexTip = handSkeleton.joint(.indexFingerTip)
+                // Get thumb and index positions
+                let (thumbPos, indexPos) = self.getThumbAndIndexPositions(handSkeleton: handSkeleton)
+                let (thumbWorldPos, indexWorldPos) = self.getWorldPositions(thumbPos: thumbPos, indexPos: indexPos, handAnchor: handAnchor)
                 
-                let thumbPosition = thumbTip.anchorFromJointTransform.columns.3
-                let indexPosition = indexTip.anchorFromJointTransform.columns.3
-                
-                // Extract xyz components from the position vectors
-                let thumbPos = SIMD3<Float>(thumbPosition.x, thumbPosition.y, thumbPosition.z)
-                let indexPos = SIMD3<Float>(indexPosition.x, indexPosition.y, indexPosition.z)
-                
+                // Calculate pinch state
                 let distance = simd_distance(thumbPos, indexPos)
                 let isPinching = distance < 0.03 // Adjust this threshold as needed
+                
+                // Update AppModel with pinch state and position
+                self.updateAppModel(handComponent: handComponent, isPinching: isPinching, thumbWorldPos: thumbWorldPos, indexWorldPos: indexWorldPos)
                 
                 // Debug logging
                 print("Thumb position: \(thumbPos)")
@@ -102,45 +99,31 @@ struct HandTrackingSystem: System {
                 print("Distance: \(distance)")
                 print("Is pinching: \(isPinching)")
                 
-                // Create or update the pinch sphere
-                if isPinching {
-                    if handComponent.pinchSphere == nil {
-                        // Create the sphere if it doesn't exist
-                        let sphere = ModelEntity(
-                            mesh: .generateSphere(radius: 0.02),
-                            materials: [SimpleMaterial(color: .red, isMetallic: false)]
-                        )
-                        entity.addChild(sphere)
-                        handComponent.pinchSphere = sphere
-                        print("Created new sphere")
-                    }
-                    
-                    // Position the sphere between thumb and index finger
-                    if let sphere = handComponent.pinchSphere {
-                        // Convert positions to world space
-                        let thumbWorldPos = handAnchor.originFromAnchorTransform * thumbPosition
-                        let indexWorldPos = handAnchor.originFromAnchorTransform * indexPosition
-                        
-                        let thumbWorldPos3 = SIMD3<Float>(thumbWorldPos.x, thumbWorldPos.y, thumbWorldPos.z)
-                        let indexWorldPos3 = SIMD3<Float>(indexWorldPos.x, indexWorldPos.y, indexWorldPos.z)
-                        
-                        let midpoint = (thumbWorldPos3 + indexWorldPos3) * 0.5
-                        sphere.position = midpoint
-                        print("Sphere position: \(sphere.position)")
-                    }
-                } else {
-                    // Remove the sphere if not pinching
-                    if let sphere = handComponent.pinchSphere {
-                        sphere.removeFromParent()
-                        handComponent.pinchSphere = nil
-                        print("Removed sphere")
-                    }
-                }
+                // Handle pinch sphere
+                let midpoint = (thumbWorldPos + indexWorldPos) * 0.5
+                self.handlePinchSphere(
+                    entity: entity,
+                    handComponent: &handComponent,
+                    isPinching: isPinching,
+                    midpoint: midpoint,
+                    leftHandSphere: &leftHandSphere,
+                    rightHandSphere: &rightHandSphere,
+                    leftHandEntity: &leftHandEntity,
+                    rightHandEntity: &rightHandEntity
+                )
             }
             
             // Apply the updated hand component back to the hand entity
             entity.components.set(handComponent)
         }
+        
+        // Handle connecting cube
+        self.handleConnectingCube(
+            leftHandSphere: leftHandSphere,
+            rightHandSphere: rightHandSphere,
+            leftHandEntity: leftHandEntity,
+            rightHandEntity: rightHandEntity
+        )
     }
     
     /// Performs any necessary setup to the entities with the hand-tracking component.
@@ -172,5 +155,145 @@ struct HandTrackingSystem: System {
 
         // Apply the updated hand component back to the hand entity.
         handEntity.components.set(handComponent)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func updateJointPositions(handSkeleton: HandSkeleton, handComponent: HandTrackingComponent, handAnchor: HandAnchor) {
+        for (jointName, jointEntity) in handComponent.fingers {
+            let anchorFromJointTransform = handSkeleton.joint(jointName).anchorFromJointTransform
+            jointEntity.setTransformMatrix(
+                handAnchor.originFromAnchorTransform * anchorFromJointTransform,
+                relativeTo: nil
+            )
+        }
+    }
+    
+    private func getThumbAndIndexPositions(handSkeleton: HandSkeleton) -> (thumbPos: SIMD3<Float>, indexPos: SIMD3<Float>) {
+        let thumbTip = handSkeleton.joint(.thumbTip)
+        let indexTip = handSkeleton.joint(.indexFingerTip)
+        
+        let thumbPosition = thumbTip.anchorFromJointTransform.columns.3
+        let indexPosition = indexTip.anchorFromJointTransform.columns.3
+        
+        let thumbPos = SIMD3<Float>(thumbPosition.x, thumbPosition.y, thumbPosition.z)
+        let indexPos = SIMD3<Float>(indexPosition.x, indexPosition.y, indexPosition.z)
+        
+        return (thumbPos, indexPos)
+    }
+    
+    private func getWorldPositions(thumbPos: SIMD3<Float>, indexPos: SIMD3<Float>, handAnchor: HandAnchor) -> (thumbWorldPos: SIMD3<Float>, indexWorldPos: SIMD3<Float>) {
+        let thumbPosition = SIMD4<Float>(thumbPos.x, thumbPos.y, thumbPos.z, 1)
+        let indexPosition = SIMD4<Float>(indexPos.x, indexPos.y, indexPos.z, 1)
+        
+        let thumbWorldPos = handAnchor.originFromAnchorTransform * thumbPosition
+        let indexWorldPos = handAnchor.originFromAnchorTransform * indexPosition
+        
+        return (
+            SIMD3<Float>(thumbWorldPos.x, thumbWorldPos.y, thumbWorldPos.z),
+            SIMD3<Float>(indexWorldPos.x, indexWorldPos.y, indexWorldPos.z)
+        )
+    }
+    
+    @MainActor private func updateAppModel(handComponent: HandTrackingComponent, isPinching: Bool, thumbWorldPos: SIMD3<Float>, indexWorldPos: SIMD3<Float>) {
+        if handComponent.chirality == .left {
+            AppModel.shared.isPinchingLeftHand = isPinching
+            if isPinching {
+                AppModel.shared.leftPinchPosition = (thumbWorldPos + indexWorldPos) * 0.5
+            }
+        } else if handComponent.chirality == .right {
+            AppModel.shared.isPinchingRightHand = isPinching
+            if isPinching {
+                AppModel.shared.rightPinchPosition = (thumbWorldPos + indexWorldPos) * 0.5
+            }
+        }
+    }
+    
+    private func handlePinchSphere(
+        entity: Entity,
+        handComponent: inout HandTrackingComponent,
+        isPinching: Bool,
+        midpoint: SIMD3<Float>,
+        leftHandSphere: inout ModelEntity?,
+        rightHandSphere: inout ModelEntity?,
+        leftHandEntity: inout Entity?,
+        rightHandEntity: inout Entity?
+    ) {
+        if isPinching {
+            if handComponent.pinchSphere == nil {
+                let sphere = ModelEntity(
+                    mesh: .generateSphere(radius: 0.02),
+                    materials: [SimpleMaterial(color: .red, isMetallic: false)]
+                )
+                entity.addChild(sphere)
+                handComponent.pinchSphere = sphere
+                print("Created new sphere")
+            }
+            
+            if let sphere = handComponent.pinchSphere {
+                sphere.position = midpoint
+                print("Sphere position: \(sphere.position)")
+                
+                if handComponent.chirality == .left {
+                    leftHandSphere = sphere
+                    leftHandEntity = entity
+                } else {
+                    rightHandSphere = sphere
+                    rightHandEntity = entity
+                }
+            }
+        } else {
+            if let sphere = handComponent.pinchSphere {
+                sphere.removeFromParent()
+                handComponent.pinchSphere = nil
+                print("Removed sphere")
+            }
+        }
+    }
+    
+    private func handleConnectingCube(
+        leftHandSphere: ModelEntity?,
+        rightHandSphere: ModelEntity?,
+        leftHandEntity: Entity?,
+        rightHandEntity: Entity?
+    ) {
+        if let leftSphere = leftHandSphere,
+           let rightSphere = rightHandSphere,
+           let leftEntity = leftHandEntity,
+           let rightEntity = rightHandEntity {
+            
+            let distance = simd_distance(leftSphere.position, rightSphere.position)
+            let midpoint = (leftSphere.position + rightSphere.position) * 0.5
+            
+            if HandTrackingComponent.connectingCube == nil {
+                let cube = ModelEntity(
+                    mesh: .generateBox(size: SIMD3<Float>(1.0, 1.0, 1.0)),
+                    materials: [SimpleMaterial(color: .blue, isMetallic: false)]
+                )
+                leftEntity.addChild(cube)
+                HandTrackingComponent.connectingCube = cube
+            }
+            
+            if let cube = HandTrackingComponent.connectingCube {
+                let uniformScale = distance
+                cube.scale = SIMD3<Float>(uniformScale, uniformScale, uniformScale)
+                cube.position = midpoint
+                
+                let direction = normalize(rightSphere.position - leftSphere.position)
+                cube.orientation = simd_quatf(from: SIMD3<Float>(0, 0, 1), to: direction)
+            }
+        } else {
+            if let cube = HandTrackingComponent.connectingCube {
+                let currentTransform = cube.transform
+                cube.removeFromParent()
+                
+                if let mainContent = Self.mainSceneContent {
+                    mainContent.addChild(cube)
+                    cube.transform = currentTransform
+                }
+                
+                HandTrackingComponent.connectingCube = nil
+            }
+        }
     }
 } 

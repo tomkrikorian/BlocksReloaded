@@ -10,15 +10,17 @@ import SwiftUI
 @main
 struct Blocks_ReloadedApp: App {
 
-    @State private var appModel = AppModel()
+    @State private var appModel = AppModel.shared
 
     var body: some Scene {
+        /*
         WindowGroup {
             ContentView()
                 .environment(appModel)
         }
         .windowStyle(.volumetric)
-
+        */
+        
         ImmersiveSpace(id: appModel.immersiveSpaceID) {
             ImmersiveView()
                 .environment(appModel)
