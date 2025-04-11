@@ -41,34 +41,36 @@ struct BlockCreatorSystem: System {
                     // Calculate cube properties
                     let distance = simd_distance(AppModel.shared.leftPinchPosition, AppModel.shared.rightPinchPosition)
                     let midpoint = (AppModel.shared.leftPinchPosition + AppModel.shared.rightPinchPosition) * 0.5
+                    let direction = normalize(AppModel.shared.rightPinchPosition - AppModel.shared.leftPinchPosition)
+                    let orientation = simd_quatf(from: SIMD3<Float>(0, 0, 1), to: direction)
+                    let scale = SIMD3<Float>(distance, distance, distance)
                     
                     // Update cube
-                    let uniformScale = distance
-                    cube.scale = SIMD3<Float>(uniformScale, uniformScale, uniformScale)
                     cube.position = midpoint
-                    
-                    // Orient the cube to point from left to right hand
-                    let direction = normalize(AppModel.shared.rightPinchPosition - AppModel.shared.leftPinchPosition)
-                    cube.orientation = simd_quatf(from: SIMD3<Float>(0, 0, 1), to: direction)
+                    cube.orientation = orientation
+                    cube.scale = scale
                 }
             } else {
                 // If not both hands are pinching, clean up
                 if blockComponent.state == .creating {
                     if let cube = blockComponent.cube {
-                        // Store the cube's current transform
-                        let currentTransform = cube.transform
+                        // Calculate final cube properties
+                        let distance = simd_distance(AppModel.shared.leftPinchPosition, AppModel.shared.rightPinchPosition)
+                        let midpoint = (AppModel.shared.leftPinchPosition + AppModel.shared.rightPinchPosition) * 0.5
+                        let direction = normalize(AppModel.shared.rightPinchPosition - AppModel.shared.leftPinchPosition)
+                        let orientation = simd_quatf(from: SIMD3<Float>(0, 0, 1), to: direction)
+                        let scale = SIMD3<Float>(distance, distance, distance)
                         
-                        // Remove from block entity
+                        // Remove the temporary cube
                         cube.removeFromParent()
-                        
-                        // Add to main scene if available
-                        if let root = AppModel.shared.sceneRootEntity {
-                            root.addChild(cube)
-                            // Restore the transform
-                            cube.transform = currentTransform
-                        }
-                        
                         blockComponent.cube = nil
+                        
+                        // Create the final block in the scene
+                        _ = AppModel.shared.createBlock(
+                            position: midpoint,
+                            orientation: orientation,
+                            scale: scale
+                        )
                     }
                     blockComponent.state = .notCreating
                 }

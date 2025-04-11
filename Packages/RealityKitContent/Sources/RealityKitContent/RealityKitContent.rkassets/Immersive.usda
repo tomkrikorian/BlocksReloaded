@@ -38,6 +38,53 @@ def Xform "Root"
                 token outputs:realitykit:vertex
             }
         }
+
+        over "Ground_01"
+        {
+        }
+
+        over "Grid"
+        {
+            def RealityKitComponent "Collider"
+            {
+                uint group = 1
+                uniform token info:id = "RealityKit.Collider"
+                uint mask = 4294967295
+                token type = "Default"
+
+                def RealityKitStruct "Shape"
+                {
+                    float3 extent = (2390.767, 0.0017252036, 2390.767)
+                    token shapeType = "Box"
+
+                    def RealityKitStruct "pose"
+                    {
+                        float3 position = (-0.00018310547, 0.0008626018, -0.00018310547)
+                    }
+                }
+            }
+
+            def RealityKitComponent "RigidBody"
+            {
+                bool gravityEnabled = 0
+                uniform token info:id = "RealityKit.RigidBody"
+                token motionType = "Static"
+
+                def RealityKitStruct "massFrame"
+                {
+                    def RealityKitStruct "m_pose"
+                    {
+                    }
+                }
+
+                def RealityKitStruct "material"
+                {
+                    double dynamicFriction = 0.8
+                    double restitution = 0.1
+                    double staticFriction = 1
+                }
+            }
+        }
     }
 }
 
