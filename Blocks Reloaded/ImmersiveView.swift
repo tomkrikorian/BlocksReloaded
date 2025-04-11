@@ -14,10 +14,8 @@ struct ImmersiveView: View {
         RealityView { content in
             // Create a root entity for the scene
             let rootEntity = Entity()
+            AppModel.shared.sceneRootEntity = rootEntity
             content.add(rootEntity)
-            
-            // Store the root entity for cube placement
-            HandTrackingSystem.mainSceneContent = rootEntity
             
             // Add the initial RealityKit content
             if let immersiveContentEntity = try? await Entity(named: "Immersive", in: realityKitContentBundle) {
@@ -26,6 +24,7 @@ struct ImmersiveView: View {
             
             // Add hand tracking
             makeHandEntities(in: content)
+            makeBlockCreatorEntity(in: content)
         }
         .upperLimbVisibility(.hidden)
     }
@@ -43,9 +42,16 @@ struct ImmersiveView: View {
         rightHand.components.set(HandTrackingComponent(chirality: .right))
         content.add(rightHand)
     }
+    
+    @MainActor
+    func makeBlockCreatorEntity(in content: any RealityViewContentProtocol) {
+        let blockCreatorEntity = Entity()
+        blockCreatorEntity.components.set(BlockInProgressComponent())
+        content.add(blockCreatorEntity)
+    }
 }
 
 #Preview(immersionStyle: .full) {
     ImmersiveView()
-        .environment(AppModel())
+        .environment(AppModel.shared)
 }

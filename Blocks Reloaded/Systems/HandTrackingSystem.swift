@@ -18,9 +18,6 @@ struct HandTrackingSystem: System {
 
     /// The most recent anchor that the provider detects on the right hand.
     static var latestRightHand: HandAnchor?
-    
-    /// The main scene content
-    static var mainSceneContent: Entity?
 
     init(scene: RealityKit.Scene) {
         Task { await Self.runSession() }
@@ -93,12 +90,6 @@ struct HandTrackingSystem: System {
                 // Update AppModel with pinch state and position
                 self.updateAppModel(handComponent: handComponent, isPinching: isPinching, thumbWorldPos: thumbWorldPos, indexWorldPos: indexWorldPos)
                 
-                // Debug logging
-                print("Thumb position: \(thumbPos)")
-                print("Index position: \(indexPos)")
-                print("Distance: \(distance)")
-                print("Is pinching: \(isPinching)")
-                
                 // Handle pinch sphere
                 let midpoint = (thumbWorldPos + indexWorldPos) * 0.5
                 self.handlePinchSphere(
@@ -116,14 +107,6 @@ struct HandTrackingSystem: System {
             // Apply the updated hand component back to the hand entity
             entity.components.set(handComponent)
         }
-        
-        // Handle connecting cube
-        self.handleConnectingCube(
-            leftHandSphere: leftHandSphere,
-            rightHandSphere: rightHandSphere,
-            leftHandEntity: leftHandEntity,
-            rightHandEntity: rightHandEntity
-        )
     }
     
     /// Performs any necessary setup to the entities with the hand-tracking component.
@@ -227,12 +210,10 @@ struct HandTrackingSystem: System {
                 )
                 entity.addChild(sphere)
                 handComponent.pinchSphere = sphere
-                print("Created new sphere")
             }
             
             if let sphere = handComponent.pinchSphere {
                 sphere.position = midpoint
-                print("Sphere position: \(sphere.position)")
                 
                 if handComponent.chirality == .left {
                     leftHandSphere = sphere
@@ -246,53 +227,6 @@ struct HandTrackingSystem: System {
             if let sphere = handComponent.pinchSphere {
                 sphere.removeFromParent()
                 handComponent.pinchSphere = nil
-                print("Removed sphere")
-            }
-        }
-    }
-    
-    private func handleConnectingCube(
-        leftHandSphere: ModelEntity?,
-        rightHandSphere: ModelEntity?,
-        leftHandEntity: Entity?,
-        rightHandEntity: Entity?
-    ) {
-        if let leftSphere = leftHandSphere,
-           let rightSphere = rightHandSphere,
-           let leftEntity = leftHandEntity,
-           let rightEntity = rightHandEntity {
-            
-            let distance = simd_distance(leftSphere.position, rightSphere.position)
-            let midpoint = (leftSphere.position + rightSphere.position) * 0.5
-            
-            if HandTrackingComponent.connectingCube == nil {
-                let cube = ModelEntity(
-                    mesh: .generateBox(size: SIMD3<Float>(1.0, 1.0, 1.0)),
-                    materials: [SimpleMaterial(color: .blue, isMetallic: false)]
-                )
-                leftEntity.addChild(cube)
-                HandTrackingComponent.connectingCube = cube
-            }
-            
-            if let cube = HandTrackingComponent.connectingCube {
-                let uniformScale = distance
-                cube.scale = SIMD3<Float>(uniformScale, uniformScale, uniformScale)
-                cube.position = midpoint
-                
-                let direction = normalize(rightSphere.position - leftSphere.position)
-                cube.orientation = simd_quatf(from: SIMD3<Float>(0, 0, 1), to: direction)
-            }
-        } else {
-            if let cube = HandTrackingComponent.connectingCube {
-                let currentTransform = cube.transform
-                cube.removeFromParent()
-                
-                if let mainContent = Self.mainSceneContent {
-                    mainContent.addChild(cube)
-                    cube.transform = currentTransform
-                }
-                
-                HandTrackingComponent.connectingCube = nil
             }
         }
     }

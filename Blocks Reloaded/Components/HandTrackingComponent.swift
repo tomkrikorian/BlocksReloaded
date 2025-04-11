@@ -16,9 +16,6 @@ struct HandTrackingComponent: Component {
     /// The sphere entity that appears when pinching
     var pinchSphere: ModelEntity?
     
-    /// The cube entity that appears when both hands are pinching
-    static var connectingCube: ModelEntity?
-    
     /// Creates a new hand-tracking component.
     /// - Parameter chirality: The chirality of the hand target.
     init(chirality: AnchoringComponent.Target.Chirality) {

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import RealityKit
 
 /// Maintains app-wide state
 @MainActor
@@ -13,6 +14,8 @@ import SwiftUI
 class AppModel {
     
     public static let shared = AppModel()
+    
+    public var sceneRootEntity: Entity?
     
     public var isPinchingLeftHand: Bool = false
     public var leftPinchPosition: SIMD3<Float> = .zero
