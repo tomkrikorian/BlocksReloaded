@@ -1,0 +1,44 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (448.100.13)"
+    }
+    defaultPrim = "HollowCube"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "HollowCube" (
+    active = true
+    references = @GlowCube.usdz@
+)
+{
+    float3 xformOp:scale = (1, 1, 1)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    over "CubeWithEdges_Root_001"
+    {
+        over "StylizedCube" (
+            active = false
+        )
+        {
+        }
+    }
+
+    over "_materials"
+    {
+        over "EdgeMaterial_002"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+
+            over "Principled_BSDF"
+            {
+                color3f inputs:emissiveColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+            }
+        }
+    }
+}
+

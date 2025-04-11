@@ -1,0 +1,80 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (448.100.13)"
+    }
+    defaultPrim = "Glow_Cube"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "Glow_Cube" (
+    active = true
+    references = @GlowCube.usdz@
+)
+{
+    float3 xformOp:scale = (1, 1, 1)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    over "_materials"
+    {
+        over "FaceMaterial_002"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+
+            over "Principled_BSDF"
+            {
+                color3f inputs:diffuseColor = (0.31624517, 0.31624517, 0.31624517) (
+                    colorSpace = "srgb_displayp3"
+                )
+                color3f inputs:emissiveColor = (0.44068137, 0.44068137, 0.44068137) (
+                    colorSpace = "srgb_displayp3"
+                )
+                float inputs:roughness = 1
+            }
+        }
+
+        over "EdgeMaterial_002"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+
+            over "Principled_BSDF"
+            {
+                color3f inputs:diffuseColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+                color3f inputs:emissiveColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+            }
+        }
+    }
+
+    over "env_light" (
+        active = false
+    )
+    {
+    }
+
+    def RealityKitComponent "Collider"
+    {
+        uint group = 1
+        uniform token info:id = "RealityKit.Collider"
+        uint mask = 4294967295
+        token type = "Default"
+
+        def RealityKitStruct "Shape"
+        {
+            float3 extent = (0.21000004, 0.21000001, 0.21000001)
+            token shapeType = "Box"
+
+            def RealityKitStruct "pose"
+            {
+                float3 position = (0, -3.7252903e-9, -3.7252903e-9)
+            }
+        }
+    }
+}
+
