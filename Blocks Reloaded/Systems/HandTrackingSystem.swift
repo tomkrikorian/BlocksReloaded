@@ -1,57 +1,46 @@
-/*
-Abstract:
-A system that updates entities that have hand-tracking components.
-*/
 import RealityKit
 import SwiftUI
 import ARKit
 
-/// A system that provides hand-tracking capabilities.
+/*
+Abstract:
+A system that updates entities that have hand-tracking components.
+*/
+
 struct HandTrackingSystem: System {
-    /// The active ARKit session.
     static var arSession = ARKitSession()
-
-    /// The provider instance for hand-tracking.
     static let handTracking = HandTrackingProvider()
-
-    /// The most recent anchor that the provider detects on the left hand.
+    
     static var latestLeftHand: HandAnchor?
-
-    /// The most recent anchor that the provider detects on the right hand.
     static var latestRightHand: HandAnchor?
-
+    
     init(scene: RealityKit.Scene) {
         Task { await Self.runSession() }
     }
-
+    
     @MainActor
     static func runSession() async {
         do {
-            // Attempt to run the ARKit session with the hand-tracking provider.
             try await arSession.run([handTracking])
         } catch let error as ARKitSession.Error {
-            print("The app has encountered an error while running providers: \(error.localizedDescription)")
+            print("Error running providers: \(error.localizedDescription)")
         } catch let error {
-            print("The app has encountered an unexpected error: \(error.localizedDescription)")
+            print("Unexpected error: \(error.localizedDescription)")
         }
-
-        // Start to collect each hand-tracking anchor.
+        
+        // Listen for each hand anchor update.
         for await anchorUpdate in handTracking.anchorUpdates {
-            // Check whether the anchor is on the left or right hand.
             switch anchorUpdate.anchor.chirality {
             case .left:
-                self.latestLeftHand = anchorUpdate.anchor
+                Self.latestLeftHand = anchorUpdate.anchor
             case .right:
-                self.latestRightHand = anchorUpdate.anchor
+                Self.latestRightHand = anchorUpdate.anchor
             }
         }
     }
     
-    /// The query this system uses to find all entities with the hand-tracking component.
     static let query = EntityQuery(where: .has(HandTrackingComponent.self))
     
-    /// Performs any necessary updates to the entities with the hand-tracking component.
-    /// - Parameter context: The context for the system to update.
     func update(context: SceneUpdateContext) {
         let handEntities = context.entities(matching: Self.query, updatingSystemWhen: .rendering)
         
@@ -59,41 +48,41 @@ struct HandTrackingSystem: System {
         var rightHandSphere: ModelEntity?
         var leftHandEntity: Entity?
         var rightHandEntity: Entity?
-
+        
         for entity in handEntities {
             guard var handComponent = entity.components[HandTrackingComponent.self] else { continue }
-
-            // Set up the finger joint entities if you haven't already.
+            
+            // If we haven't created the finger joint spheres yet, do so once.
             if handComponent.fingers.isEmpty {
-                self.addJoints(to: entity, handComponent: &handComponent)
+                addJoints(to: entity, handComponent: &handComponent)
             }
-
-            // Get the hand anchor for the component, depending on its chirality.
-            guard let handAnchor: HandAnchor = switch handComponent.chirality {
-                case .left: Self.latestLeftHand
-                case .right: Self.latestRightHand
-                default: nil
-            } else { continue }
-
-            // Iterate through all of the anchors on the hand skeleton.
+            
+            // Find the relevant HandAnchor (left or right).
+            guard let handAnchor: HandAnchor = {
+                switch handComponent.chirality {
+                case .left:  return Self.latestLeftHand
+                case .right: return Self.latestRightHand
+                default:     return nil
+                }
+            }() else {
+                continue
+            }
+            
+            // If the skeleton is available, update everything
             if let handSkeleton = handAnchor.handSkeleton {
-                // Update joint positions
-                self.updateJointPositions(handSkeleton: handSkeleton, handComponent: handComponent, handAnchor: handAnchor)
+                updateJointPositions(handSkeleton: handSkeleton, handComponent: &handComponent, handAnchor: handAnchor)
                 
-                // Get thumb and index positions
-                let (thumbPos, indexPos) = self.getThumbAndIndexPositions(handSkeleton: handSkeleton)
-                let (thumbWorldPos, indexWorldPos) = self.getWorldPositions(thumbPos: thumbPos, indexPos: indexPos, handAnchor: handAnchor)
+                // Identify pinch location between thumb and index
+                let (thumbPos, indexPos) = getThumbAndIndexPositions(handSkeleton: handSkeleton)
+                let (thumbWorldPos, indexWorldPos) = getWorldPositions(thumbPos: thumbPos, indexPos: indexPos, handAnchor: handAnchor)
                 
-                // Calculate pinch state
                 let distance = simd_distance(thumbPos, indexPos)
-                let isPinching = distance < 0.03 // Adjust this threshold as needed
+                let isPinching = distance < 0.03
                 
-                // Update AppModel with pinch state and position
-                self.updateAppModel(handComponent: handComponent, isPinching: isPinching, thumbWorldPos: thumbWorldPos, indexWorldPos: indexWorldPos)
+                updateAppModel(handComponent: handComponent, isPinching: isPinching, thumbWorldPos: thumbWorldPos, indexWorldPos: indexWorldPos)
                 
-                // Handle pinch sphere
                 let midpoint = (thumbWorldPos + indexWorldPos) * 0.5
-                self.handlePinchSphere(
+                handlePinchSphere(
                     entity: entity,
                     handComponent: &handComponent,
                     isPinching: isPinching,
@@ -105,45 +94,45 @@ struct HandTrackingSystem: System {
                 )
             }
             
-            // Apply the updated hand component back to the hand entity
+            // Store updated component
             entity.components.set(handComponent)
         }
     }
     
-    /// Performs any necessary setup to the entities with the hand-tracking component.
-    /// - Parameters:
-    ///   - entity: The entity to perform setup on.
-    ///   - handComponent: The hand-tracking component to update.
+    // ----------------------------------------------------------------
+    // 1) Create finger joint spheres if we haven't already
+    // ----------------------------------------------------------------
+    
     func addJoints(to handEntity: Entity, handComponent: inout HandTrackingComponent) {
-        /// The size of the sphere mesh.
-        let radius: Float = 0.01
-
-        /// The material to apply to the sphere entity.
+        let radius: Float = 0.005
         let material = SimpleMaterial(color: .white, isMetallic: false)
-
-        /// The sphere entity that represents a joint in a hand.
+        
         let sphereEntity = ModelEntity(
             mesh: .generateSphere(radius: radius),
             materials: [material]
         )
-
-        // For each joint, create a sphere and attach it to the fingers.
-        for bone in Hand.joints {
-            // Add a duplication of the sphere entity to the hand entity.
+        
+        // Add a small sphere for each joint
+        for (jointName, finger, _) in Hand.joints {
             let newJoint = sphereEntity.clone(recursive: false)
             handEntity.addChild(newJoint)
-
-            // Attach the sphere to the finger.
-            handComponent.fingers[bone.0] = newJoint
+            handComponent.fingers[jointName] = newJoint
         }
-
-        // Apply the updated hand component back to the hand entity.
+        
         handEntity.components.set(handComponent)
+        print("Finished adding joints")
     }
     
-    // MARK: - Helper Methods
+    // ----------------------------------------------------------------
+    // 2) Update the joints & cylinders each frame
+    // ----------------------------------------------------------------
     
-    private func updateJointPositions(handSkeleton: HandSkeleton, handComponent: HandTrackingComponent, handAnchor: HandAnchor) {
+    private func updateJointPositions(
+        handSkeleton: HandSkeleton,
+        handComponent: inout HandTrackingComponent,
+        handAnchor: HandAnchor
+    ) {
+        // Update each joint's transform in world space
         for (jointName, jointEntity) in handComponent.fingers {
             let anchorFromJointTransform = handSkeleton.joint(jointName).anchorFromJointTransform
             jointEntity.setTransformMatrix(
@@ -151,35 +140,116 @@ struct HandTrackingSystem: System {
                 relativeTo: nil
             )
         }
+        
+        // If we haven't created cylinders yet, do it once
+        if handComponent.cylinders.isEmpty {
+            createCylinders(handComponent: &handComponent, handSkeleton: handSkeleton)
+        }
     }
     
-    private func getThumbAndIndexPositions(handSkeleton: HandSkeleton) -> (thumbPos: SIMD3<Float>, indexPos: SIMD3<Float>) {
+    // ----------------------------------------------------------------
+    // (A) Create cylinders once for each consecutive joint pair
+    // ----------------------------------------------------------------
+    
+    private func createCylinders(handComponent: inout HandTrackingComponent, handSkeleton: HandSkeleton) {
+        for joint in HandSkeleton.JointName.allCases {
+            // Skip wrist and forearm joints as they don't have parent joints
+            if joint == .wrist || joint == .forearmWrist || joint == .forearmArm {
+                continue
+            }
+            
+            let skeletonJoint = handSkeleton.joint(joint)
+            guard let parentJoint = skeletonJoint.parentJoint else { continue }
+            
+            // Get the transform from the joint to its parent in local space
+            let parentFromJointTransform = skeletonJoint.parentFromJointTransform
+            
+            // Extract position from the transform
+            let position = SIMD3<Float>(
+                parentFromJointTransform.columns.3.x,
+                parentFromJointTransform.columns.3.y,
+                parentFromJointTransform.columns.3.z
+            )
+            
+            // Calculate the distance between joints
+            let distance = simd_length(position)
+            
+            // Create cylinder with correct transform
+            let cylinderMaterial = SimpleMaterial(color: .white, isMetallic: false)
+            let cylinderModel = ModelEntity(
+                mesh: .generateCylinder(height: 1.0, radius: 0.002),
+                materials: [cylinderMaterial]
+            )
+            
+            // Create a holder entity to manage the cylinder's transform
+            let holder = Entity()
+            
+            // Position the holder at the parent joint
+            holder.position = .zero
+            
+            // Orient the holder to point from parent to child joint
+            holder.look(at: position, from: .zero, relativeTo: nil)
+            
+            // Add the cylinder to the holder
+            let rotationAngle: Float = handComponent.chirality == .left ? -.pi / 2 : .pi / 2
+            cylinderModel.transform = Transform(
+                scale: [1, distance, 1],
+                rotation: simd_quatf(angle: rotationAngle, axis: [1, 0, 0]), // Rotate to align with Y axis
+                translation: [0, 0, -distance * 0.5] // Offset by half the length in local space
+            )
+            holder.addChild(cylinderModel)
+            
+            // Add the holder to the parent joint
+            if let parentJointEntity = handComponent.fingers[parentJoint.name] {
+                parentJointEntity.addChild(holder)
+                handComponent.cylinders[joint] = cylinderModel
+            }
+        }
+    }
+    
+    // ----------------------------------------------------------------
+    // Thumb & Index pinch logic
+    // ----------------------------------------------------------------
+    
+    private func getThumbAndIndexPositions(
+        handSkeleton: HandSkeleton
+    ) -> (thumbPos: SIMD3<Float>, indexPos: SIMD3<Float>) {
         let thumbTip = handSkeleton.joint(.thumbTip)
         let indexTip = handSkeleton.joint(.indexFingerTip)
         
         let thumbPosition = thumbTip.anchorFromJointTransform.columns.3
         let indexPosition = indexTip.anchorFromJointTransform.columns.3
         
-        let thumbPos = SIMD3<Float>(thumbPosition.x, thumbPosition.y, thumbPosition.z)
-        let indexPos = SIMD3<Float>(indexPosition.x, indexPosition.y, indexPosition.z)
-        
-        return (thumbPos, indexPos)
-    }
-    
-    private func getWorldPositions(thumbPos: SIMD3<Float>, indexPos: SIMD3<Float>, handAnchor: HandAnchor) -> (thumbWorldPos: SIMD3<Float>, indexWorldPos: SIMD3<Float>) {
-        let thumbPosition = SIMD4<Float>(thumbPos.x, thumbPos.y, thumbPos.z, 1)
-        let indexPosition = SIMD4<Float>(indexPos.x, indexPos.y, indexPos.z, 1)
-        
-        let thumbWorldPos = handAnchor.originFromAnchorTransform * thumbPosition
-        let indexWorldPos = handAnchor.originFromAnchorTransform * indexPosition
-        
         return (
-            SIMD3<Float>(thumbWorldPos.x, thumbWorldPos.y, thumbWorldPos.z),
-            SIMD3<Float>(indexWorldPos.x, indexWorldPos.y, indexWorldPos.z)
+            SIMD3<Float>(thumbPosition.x, thumbPosition.y, thumbPosition.z),
+            SIMD3<Float>(indexPosition.x, indexPosition.y, indexPosition.z)
         )
     }
     
-    @MainActor private func updateAppModel(handComponent: HandTrackingComponent, isPinching: Bool, thumbWorldPos: SIMD3<Float>, indexWorldPos: SIMD3<Float>) {
+    private func getWorldPositions(
+        thumbPos: SIMD3<Float>,
+        indexPos: SIMD3<Float>,
+        handAnchor: HandAnchor
+    ) -> (SIMD3<Float>, SIMD3<Float>) {
+        let thumb4 = SIMD4<Float>(thumbPos.x, thumbPos.y, thumbPos.z, 1)
+        let index4 = SIMD4<Float>(indexPos.x, indexPos.y, indexPos.z, 1)
+        
+        let thumbWorld = handAnchor.originFromAnchorTransform * thumb4
+        let indexWorld = handAnchor.originFromAnchorTransform * index4
+        
+        return (
+            SIMD3<Float>(thumbWorld.x, thumbWorld.y, thumbWorld.z),
+            SIMD3<Float>(indexWorld.x, indexWorld.y, indexWorld.z)
+        )
+    }
+    
+    @MainActor
+    private func updateAppModel(
+        handComponent: HandTrackingComponent,
+        isPinching: Bool,
+        thumbWorldPos: SIMD3<Float>,
+        indexWorldPos: SIMD3<Float>
+    ) {
         if handComponent.chirality == .left {
             AppModel.shared.isPinchingLeftHand = isPinching
             if isPinching {
@@ -205,35 +275,23 @@ struct HandTrackingSystem: System {
     ) {
         if isPinching {
             if handComponent.pinchSphere == nil {
-                // Create a circle path
+                // Create a ring (circle with a hole)
                 let circlePath = Path { path in
-                    // Outer circle
-                    path.addArc(center: .zero,
-                              radius: 0.04,
-                              startAngle: .degrees(0),
-                              endAngle: .degrees(360),
-                              clockwise: true)
-                    
-                    // Inner circle (hole)
-                    path.addArc(center: .zero,
-                              radius: 0.03,
-                              startAngle: .degrees(0),
-                              endAngle: .degrees(360),
-                              clockwise: false)
+                    path.addArc(center: .zero, radius: 0.04,
+                                startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                    path.addArc(center: .zero, radius: 0.03,
+                                startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
                 }
                 
-                // Create extrusion options
                 var extrusionOptions = MeshResource.ShapeExtrusionOptions()
-                extrusionOptions.extrusionMethod = .linear(depth: 0.005) // 5mm depth
+                extrusionOptions.extrusionMethod = .linear(depth: 0.005)
                 extrusionOptions.boundaryResolution = .uniformSegmentsPerSpan(segmentCount: 32)
                 
-                // Create blue emissive material
                 var material = PhysicallyBasedMaterial()
-                material.baseColor = PhysicallyBasedMaterial.BaseColor(tint: .blue)
-                material.emissiveColor = PhysicallyBasedMaterial.EmissiveColor(color: .blue)
+                material.baseColor = .init(tint: .blue)
+                material.emissiveColor = .init(color: .blue)
                 material.emissiveIntensity = 1.0
                 
-                // Create the circle entity
                 let circle = ModelEntity(
                     mesh: try! MeshResource(extruding: circlePath, extrusionOptions: extrusionOptions),
                     materials: [material]
@@ -245,7 +303,6 @@ struct HandTrackingSystem: System {
             
             if let circle = handComponent.pinchSphere {
                 circle.position = midpoint
-                
                 if handComponent.chirality == .left {
                     leftHandSphere = circle
                     leftHandEntity = entity
@@ -255,10 +312,11 @@ struct HandTrackingSystem: System {
                 }
             }
         } else {
+            // Remove the ring when not pinching
             if let circle = handComponent.pinchSphere {
                 circle.removeFromParent()
                 handComponent.pinchSphere = nil
             }
         }
     }
-} 
+}
