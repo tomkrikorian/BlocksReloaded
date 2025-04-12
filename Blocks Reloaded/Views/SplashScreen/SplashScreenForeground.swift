@@ -1,5 +1,5 @@
 /*
-See the LICENSE.txt file for this sample’s licensing information.
+See the LICENSE.txt file for this sample's licensing information.
 
 Abstract:
 Functions and SwiftUI views to build the foreground of the splash screen.
@@ -10,6 +10,7 @@ Functions and SwiftUI views to build the foreground of the splash screen.
 
 import SwiftUI
 import RealityKit
+import RealityKitContent
 
 /// Material used for the front face of the logomark.
 @MainActor private let logomarkMaterial: PhysicallyBasedMaterial = {
@@ -40,7 +41,7 @@ private enum ForegroundViewError: Error {
 /// Creates the `ModelEntity` for the 3D text "RealityKit Drawing App" in a customized layout and font.
 @MainActor private func makeTextEntity() async throws -> ModelEntity {
     // Create an `AttributedString`, `"RealityKit"`.
-    var textString = AttributedString("RealityKit")
+    var textString = AttributedString("Blocks")
     
     // Set the font to 8 pt.
     textString.font = .systemFont(ofSize: 8.0)
@@ -82,54 +83,12 @@ private enum ForegroundViewError: Error {
 }
 
 /// Creates the `ModelEntity` for the 3D logomark.
-@MainActor private func makeGraphicEntity() async throws -> ModelEntity {
-    // Create a `SwiftUI.Path` with a customized shape, defined as a Bezier curve.
-    let graphicPath = Path { path in
-        path.move(to: CGPoint(x: -0.7, y: 0.135_413))
-        
-        // Left edge.
-        path.addCurve(to: CGPoint(x: -0.7, y: 0.042_066),
-                      control1: CGPoint(x: -0.85, y: 0.067_707),
-                      control2: CGPoint(x: -0.85, y: 0.021_033))
-        
-        // Top edge.
-        path.addCurve(to: CGPoint(x: 0.7, y: -0.135_413),
-                      control1: CGPoint(x: 0.004_981, y: 0.140_918),
-                      control2: CGPoint(x: 0.083_117, y: -0.413_858))
-        
-        // Right edge.
-        path.addCurve(to: CGPoint(x: 0.7, y: -0.042_066),
-                      control1: CGPoint(x: 0.85, y: -0.067_707),
-                      control2: CGPoint(x: 0.85, y: -0.021_033))
-        
-        // Bottom edge.
-        path.addCurve(to: CGPoint(x: -0.7, y: 0.135_413),
-                      control1: CGPoint(x: -0.004_981, y: -0.140_919),
-                      control2: CGPoint(x: -0.083_117, y: 0.413_858))
-        path.closeSubpath()
-        path = path.normalized()
+@MainActor private func makeGraphicEntity() async throws -> Entity {
+    // Create a cube entity from the GlowCube scene
+    guard let cube = try? await Entity.init(named: "GlowCube", in: realityKitContentBundle) else {
+        return Entity()
     }
-    
-    var extrusionOptions = MeshResource.ShapeExtrusionOptions()
-    
-    // Set the extrusion depth to 3 cm.
-    extrusionOptions.extrusionMethod = .linear(depth: 0.03)
-    
-    // Set the resolution to 32 segments per span (each `addCurve` above is a span).
-    extrusionOptions.boundaryResolution = .uniformSegmentsPerSpan(segmentCount: 32)
-    
-    // Only add a chamfer to the front.
-    extrusionOptions.chamferMode = .front
-    
-    // Set a different material for the sides of the mesh.
-    extrusionOptions.materialAssignment = .init(front: 0, back: 0, extrusion: 1, frontChamfer: 1, backChamfer: 1)
-    
-    // Set the chamfer radius to 1 cm.
-    extrusionOptions.chamferRadius = 0.01
-    
-    // Generate the mesh.
-    let graphicMesh = try await MeshResource(extruding: graphicPath, extrusionOptions: extrusionOptions)
-    return ModelEntity(mesh: graphicMesh, materials: [logomarkMaterial, borderMaterial])
+    return cube
 }
 
 private extension Entity {
@@ -154,7 +113,7 @@ private extension Entity {
 /// A view that displays a provided `ModelEntity`, scaled to fit the view's bounds.
 struct ModelEntityFillView: View {
     /// Build the `ModelEntity` to display.
-    let make: @MainActor @Sendable () async throws -> ModelEntity
+    let make: @MainActor @Sendable () async throws -> Entity
     
     var body: some View {
         GeometryReader3D { proxy in

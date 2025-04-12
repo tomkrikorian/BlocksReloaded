@@ -14,7 +14,10 @@ struct SplashScreenView: View {
 
     var body: some View {
         ZStack {
-            SplashScreenBackgroundView()
+            VStack {
+                
+            }
+            
             
             VStack {
                 Spacer(minLength: 100)
@@ -38,6 +41,7 @@ struct SplashScreenView: View {
             }
             .frame(depth: 0, alignment: DepthAlignment.back)
         }
+        .glassBackgroundEffect()
         .frame(depth: 100, alignment: DepthAlignment.back)
         .sceneTracker(for: .mainWindow)
     }

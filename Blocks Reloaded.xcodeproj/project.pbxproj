@@ -26,22 +26,11 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
-/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		82BEECF72DAAE149003521DA /* Exceptions for "Blocks Reloaded" folder in "Compile Sources" phase from "Blocks Reloaded" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = 826B6C8F2DA94D8100679EC0 /* Sources */;
-			membershipExceptions = (
-				Utilities/MetalPacking.h,
-			);
-		};
-/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		826B6C952DA94D8100679EC0 /* Blocks Reloaded */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				826B6CA72DA94D8300679EC0 /* Exceptions for "Blocks Reloaded" folder in "Blocks Reloaded" target */,
-				82BEECF72DAAE149003521DA /* Exceptions for "Blocks Reloaded" folder in "Compile Sources" phase from "Blocks Reloaded" target */,
 			);
 			path = "Blocks Reloaded";
 			sourceTree = "<group>";
