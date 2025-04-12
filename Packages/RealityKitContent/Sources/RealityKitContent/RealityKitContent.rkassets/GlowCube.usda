@@ -13,17 +13,34 @@ def "GlowCube" (
     prepend references = @GlowCube.usdz@
 )
 {
-    float3 xformOp:scale = (0.005, 0.005, 0.005)
+    float3 xformOp:scale = (1, 1, 1)
     uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
-    over "Materials"
+    over "_materials"
     {
-        over "Cube_Edge_Material_Glow_001"
+        over "FaceMaterial_002"
         {
             token outputs:mtlx:surface
             token outputs:realitykit:vertex
 
-            over "Cube_Edge_Material_Glow_001PreviewSurface"
+            over "Principled_BSDF"
+            {
+                color3f inputs:diffuseColor = (0.31624517, 0.31624517, 0.31624517) (
+                    colorSpace = "srgb_displayp3"
+                )
+                color3f inputs:emissiveColor = (0.44068137, 0.44068137, 0.44068137) (
+                    colorSpace = "srgb_displayp3"
+                )
+                float inputs:roughness = 1
+            }
+        }
+
+        over "EdgeMaterial_002"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+
+            over "Principled_BSDF"
             {
                 color3f inputs:diffuseColor = (1, 0.7490196, 0.39215684) (
                     colorSpace = "srgb_displayp3"
@@ -33,37 +50,29 @@ def "GlowCube" (
                 )
             }
         }
+    }
 
-        over "Cube_Face_Material_Red"
+    over "env_light" (
+        active = false
+    )
+    {
+    }
+
+    def RealityKitComponent "Collider"
+    {
+        uint group = 1
+        uniform token info:id = "RealityKit.Collider"
+        uint mask = 4294967295
+        token type = "Default"
+
+        def RealityKitStruct "Shape"
         {
-            token outputs:mtlx:surface.connect = </GlowCube/Materials/Cube_Face_Material_Red/PreviewSurface.outputs:out>
-            token outputs:realitykit:vertex
-            token outputs:surface.connect = </GlowCube/Materials/Cube_Face_Material_Red/Cube_Face_Material_RedPreviewSurface.outputs:surface>
-            float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (0, 110.5)
+            float3 extent = (0.21000004, 0.21000001, 0.21000001)
+            token shapeType = "Box"
 
-            over "Cube_Face_Material_RedPreviewSurface" (
-                active = true
-            )
+            def RealityKitStruct "pose"
             {
-                color3f inputs:diffuseColor = (0.2559383, 0.24786846, 0.25144976) (
-                    colorSpace = "srgb_displayp3"
-                )
-                color3f inputs:emissiveColor = (0.27284148, 0.2947908, 0.30525962) (
-                    colorSpace = "srgb_displayp3"
-                )
-                float inputs:metallic = 1
-                normal3f inputs:normal = (0, 0, 0)
-                float inputs:opacityThreshold
-                float inputs:roughness = 1
-            }
-
-            def Shader "PreviewSurface" (
-                active = false
-            )
-            {
-                uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
-                token outputs:out
-                float2 ui:nodegraph:node:pos = (-255, 105)
+                float3 position = (0, -3.7252903e-9, -3.7252903e-9)
             }
         }
     }

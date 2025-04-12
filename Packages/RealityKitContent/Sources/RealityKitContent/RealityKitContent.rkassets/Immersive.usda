@@ -110,8 +110,10 @@ def Xform "Sky"
 
         def RealityKitComponent "RigidBody"
         {
+            float angularDamping = 10
             bool gravityEnabled = 0
             uniform token info:id = "RealityKit.RigidBody"
+            float linearDamping = 0.05
             token motionType = "Static"
 
             def RealityKitStruct "massFrame"
@@ -123,6 +125,8 @@ def Xform "Sky"
 
             def RealityKitStruct "material"
             {
+                double dynamicFriction = 10
+                double staticFriction = 20
             }
         }
     }

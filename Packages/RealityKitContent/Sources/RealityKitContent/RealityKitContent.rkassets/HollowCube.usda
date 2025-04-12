@@ -10,26 +10,30 @@
 
 def "HollowCube" (
     active = true
-    references = @HollowCube.usdz@
+    references = @GlowCube.usdz@
 )
 {
-    quatf xformOp:orient = (1, 0, 0, 0)
-    float3 xformOp:scale = (0.005, 0.005, 0.005)
-    float3 xformOp:translate = (0, 0, 0)
+    float3 xformOp:scale = (1, 1, 1)
     uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
 
-    over "Materials"
+    over "CubeWithEdges_Root_001"
     {
-        over "Cube_Edge_Glow_Material"
+        over "StylizedCube" (
+            active = false
+        )
+        {
+        }
+    }
+
+    over "_materials"
+    {
+        over "EdgeMaterial_002"
         {
             token outputs:mtlx:surface
             token outputs:realitykit:vertex
 
-            over "Cube_Edge_Glow_MaterialPreviewSurface"
+            over "Principled_BSDF"
             {
-                color3f inputs:diffuseColor = (1, 0.7490196, 0.39215684) (
-                    colorSpace = "srgb_displayp3"
-                )
                 color3f inputs:emissiveColor = (1, 0.7490196, 0.39215684) (
                     colorSpace = "srgb_displayp3"
                 )

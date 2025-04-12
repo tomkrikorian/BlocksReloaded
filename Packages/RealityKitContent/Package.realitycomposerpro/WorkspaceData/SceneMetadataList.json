@@ -61,6 +61,15 @@
         "disallowsFraming" : true,
         "isExpanded" : false,
         "isLocked" : false
+      },
+      [
+        "1D572CEB-057A-41C3-B575-04C37501A3C0",
+        "Sky",
+        "Floor_Collider"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
       }
     ]
   },
@@ -69,6 +78,24 @@
       [
         "3C5BA20E-1957-48F2-9D9A-7315302ECC73",
         "HollowCube"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "3C5BA20E-1957-48F2-9D9A-7315302ECC73",
+        "HollowCube",
+        "CubeWithEdges_Root_001"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "3C5BA20E-1957-48F2-9D9A-7315302ECC73",
+        "HollowCube",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -121,13 +148,10 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "Root",
         "GlowCube",
-        "CubeWithEdges_Root",
-        "CubeFaces"
+        "_materials"
       ],
       {
-        "disallowsFraming" : false,
         "isExpanded" : true,
         "isLocked" : false
       },
@@ -142,9 +166,18 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "Root",
         "GlowCube",
-        "CubeWithEdges_Root"
+        "GlowCube",
+        "_materials"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "GlowCube",
+        "CubeWithEdges_Root_001"
       ],
       {
         "isExpanded" : true,
@@ -180,9 +213,8 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "Root",
-        "GlowCube",
-        "Materials"
+        "Transform",
+        "GlowCube"
       ],
       {
         "isExpanded" : true,
@@ -190,9 +222,8 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "Root",
         "GlowCube",
-        "CubeWithEdges_Root",
+        "CubeWithEdges_Root_001",
         "CubeEdges"
       ],
       {

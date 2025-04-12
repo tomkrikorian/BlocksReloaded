@@ -49,16 +49,14 @@ class AppModel {
         cube.orientation = orientation
         cube.scale = scale
         
+        
         // Add collision component with proper collision group and mask
-        cube.components[CollisionComponent.self] = CollisionComponent(
-            shapes: [.generateBox(size: scale)],
-            mode: .default
-        )
+        //cube.components[CollisionComponent.self] = CollisionComponent(shapes: [ShapeResource.generateBox(width: 0.021, height: 0.021, depth: 0.021)])
         
         // Add physics body component with improved physics settings
         var physics = PhysicsBodyComponent(
             massProperties: .default, // Increased mass for better interaction
-            material: .default, // Adjusted for better bouncing
+            material: .generate(staticFriction: 10, dynamicFriction: 10, restitution: 0),
             mode: .dynamic
         )
         physics.isAffectedByGravity = true
@@ -68,17 +66,13 @@ class AppModel {
         let physicsMotion =  PhysicsMotionComponent()
         cube.components[PhysicsMotionComponent.self] = physicsMotion
 
-        /*
         let highlightStyle = HoverEffectComponent.HighlightHoverEffectStyle(
             color: .orange,
-            strength: 0.8
+            strength: 0.2
         )
         let hoverEffect = HoverEffectComponent(.highlight(highlightStyle))
         cube.components.set(hoverEffect)
-        */
-        
-        cube.components.set(InputTargetComponent(allowedInputTypes: .direct))
-        
+                
         root.addChild(cube)
         return cube
     }
