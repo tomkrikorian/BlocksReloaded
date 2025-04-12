@@ -107,19 +107,41 @@ struct HandTrackingSystem: System {
         let radius: Float = 0.005
         let material = UnlitMaterial(color: .yellow)
         
+        // Name the root hand entity
+        handEntity.name = handComponent.chirality == .left ? "LEFT_HAND_ROOT" : "RIGHT_HAND_ROOT"
+        
         let sphereEntity = ModelEntity(
             mesh: .generateSphere(radius: radius),
             materials: [material]
         )
+        sphereEntity.name = "JOINT_SPHERE_TEMPLATE"
+        
+        // Add physics and collision to the template sphere
+        sphereEntity.components[CollisionComponent.self] = CollisionComponent(
+            shapes: [.generateSphere(radius: radius)],
+            mode: .default
+        )
+        
+        var physics = PhysicsBodyComponent(
+            massProperties: .init(mass: 0.01), // Light mass for joints
+            material: .generate(staticFriction: 0.5, dynamicFriction: 0.4, restitution: 0.1),
+            mode: .kinematic // Kinematic so they follow hand tracking
+        )
+        physics.isAffectedByGravity = false
+        sphereEntity.components[PhysicsBodyComponent.self] = physics
         
         // Add a small sphere for each joint
         for joint in HandSkeleton.JointName.allCases {
             let newJoint = sphereEntity.clone(recursive: false)
+            newJoint.name = "\(handComponent.chirality)_\(joint)"
             handEntity.addChild(newJoint)
             handComponent.fingers[joint] = newJoint
         }
         
         handEntity.components.set(handComponent)
+        
+        // Add the hand root to the scene via AppModel
+        // AppModel.shared.addHandRoot(handEntity, chirality: handComponent.chirality)
     }
     
     // ----------------------------------------------------------------
@@ -263,9 +285,26 @@ struct HandTrackingSystem: System {
                 mesh: .generateCylinder(height: 1.0, radius: 0.002),
                 materials: [boneMaterial]
             )
+            boneModel.name = "\(handComponent.chirality)_BONE_\(parentJoint)_TO_\(childJoint)"
+            
+            // Add collision to the bone
+            boneModel.components[CollisionComponent.self] = CollisionComponent(
+                shapes: [.generateBox(width: 0.004, height: 1.0, depth: 0.004)],
+                mode: .default
+            )
+            
+            // Add physics to the bone
+            var physics = PhysicsBodyComponent(
+                massProperties: .init(mass: 0.02), // Slightly heavier than joints
+                material: .generate(staticFriction: 0.5, dynamicFriction: 0.4, restitution: 0.1),
+                mode: .kinematic // Kinematic so they follow hand tracking
+            )
+            physics.isAffectedByGravity = false
+            boneModel.components[PhysicsBodyComponent.self] = physics
             
             // Create a holder entity to manage the bone's transform
             let holder = Entity()
+            holder.name = "\(handComponent.chirality)_BONE_HOLDER_\(parentJoint)_TO_\(childJoint)"
             handEntity.addChild(holder)
             
             // Calculate the direction and distance between joints in world space
@@ -403,6 +442,7 @@ struct HandTrackingSystem: System {
                         mesh: try! MeshResource(extruding: circlePath, extrusionOptions: extrusionOptions),
                         materials: [material]
                     )
+                    circle.name = "\(handComponent.chirality)_PINCH_RING"
                     
                     // Add audio component to the circle
                     do {

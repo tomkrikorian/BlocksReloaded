@@ -13,6 +13,7 @@ import ScenesManager
 struct ImmersiveView: View {
     @Environment(\.scenesManager) private var scenesManager
     @State private var initialPosition: SIMD3<Float>? = nil
+    @State var gravity: SIMD3<Float> = [0, -9.8, 0]
     
     var translationGesture: some Gesture {
         DragGesture()
@@ -20,7 +21,7 @@ struct ImmersiveView: View {
             .onChanged({ value in
                 /// The entity that the drag gesture targets.
                 let rootEntity = value.entity
-
+                
                 // Set `initialPosition` to the initial position of the entity if it is `nil`.
                 if initialPosition == nil {
                     initialPosition = rootEntity.position
@@ -46,22 +47,28 @@ struct ImmersiveView: View {
         RealityView { content, attachments in
             // Create a root entity for the scene
             let rootEntity = Entity()
+            rootEntity.name = "SCENE_ROOT"
+            
+            var simulation = PhysicsSimulationComponent()
+            simulation.gravity = gravity
+            rootEntity.components.set(simulation)
+            
             AppModel.shared.sceneRootEntity = rootEntity
             content.add(rootEntity)
             
             // Add the initial RealityKit content
             if let immersiveContentEntity = try? await Entity(named: "Immersive", in: realityKitContentBundle) {
-                content.add(immersiveContentEntity)
+                rootEntity.addChild(immersiveContentEntity)
             }
             
             // Add ambient audio
             if let audioEntity = createAmbientAudio() {
-                content.add(audioEntity)
+                rootEntity.addChild(audioEntity)
             }
             
             // Add hand tracking
-            makeHandEntities(in: content)
-            makeBlockCreatorEntity(in: content)
+            makeHandEntities(in: rootEntity)
+            makeBlockCreatorEntity(in: rootEntity)
             
             // Add introduction attachment
             if let introductionAttachment = attachments.entity(for: "introduction") {
@@ -96,23 +103,24 @@ struct ImmersiveView: View {
     
     /// Creates the entity that contains all hand-tracking entities.
     @MainActor
-    func makeHandEntities(in content: any RealityViewContentProtocol) {
+    func makeHandEntities(in rootEntity: Entity) {
         // Add the left hand.
         let leftHand = Entity()
         leftHand.components.set(HandTrackingComponent(chirality: .left))
-        content.add(leftHand)
+        rootEntity.addChild(leftHand)
 
         // Add the right hand.
         let rightHand = Entity()
         rightHand.components.set(HandTrackingComponent(chirality: .right))
-        content.add(rightHand)
+        rootEntity.addChild(rightHand)
     }
     
     @MainActor
-    func makeBlockCreatorEntity(in content: any RealityViewContentProtocol) {
+    func makeBlockCreatorEntity(in rootEntity: Entity) {
         let blockCreatorEntity = Entity()
+        blockCreatorEntity.name = "BLOCK_CREATOR"
         blockCreatorEntity.components.set(BlockInProgressComponent())
-        content.add(blockCreatorEntity)
+        rootEntity.addChild(blockCreatorEntity)
     }
     
     @MainActor

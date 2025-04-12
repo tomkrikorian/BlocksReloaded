@@ -1,18 +1,18 @@
 #usda 1.0
 (
-    defaultPrim = "Root"
+    defaultPrim = "Sky"
     metersPerUnit = 1
     upAxis = "Y"
 )
 
-reorder rootPrims = ["Root", "GridMaterial"]
+reorder rootPrims = ["Sky", "GridMaterial"]
 
-def Xform "Root"
+def Xform "Sky"
 {
-    reorder nameChildren = ["Sphere_Left", "Sphere_Right", "GridMaterial"]
+    reorder nameChildren = ["SkyDome", "AudioMixGroups", "Floor_Collider"]
     def "SkyDome" (
         active = true
-        prepend references = @SkyDome.usdz@
+        references = @SkyDome.usdz@
     )
     {
         float3 xformOp:scale = (0.01, 0.01, 0.01)
@@ -45,50 +45,6 @@ def Xform "Root"
 
         over "Grid"
         {
-            def RealityKitComponent "Collider"
-            {
-                uint group = 1
-                uniform token info:id = "RealityKit.Collider"
-                uint mask = 4294967295
-                token type = "Default"
-
-                def RealityKitStruct "Shape"
-                {
-                    float3 extent = (2390.767, 0.0017252036, 2390.767)
-                    token shapeType = "Box"
-
-                    def RealityKitStruct "pose"
-                    {
-                        float3 position = (-0.00018310547, 0.0008626018, -0.00018310547)
-                    }
-                }
-            }
-
-            def RealityKitComponent "RigidBody"
-            {
-                bool gravityEnabled = 0
-                uniform token info:id = "RealityKit.RigidBody"
-                token motionType = "Static"
-
-                def RealityKitStruct "massFrame"
-                {
-                    def RealityKitStruct "m_pose"
-                    {
-                    }
-                }
-
-                def RealityKitStruct "material"
-                {
-                    double dynamicFriction = 0.8
-                    double restitution = 0.1
-                    double staticFriction = 1
-                }
-            }
-
-            def RealityKitComponent "MotionState"
-            {
-                uniform token info:id = "RealityKit.MotionState"
-            }
         }
     }
 
@@ -101,6 +57,73 @@ def Xform "Root"
             float gain = 0
             bool mute = 0
             float speed = 1
+        }
+    }
+
+    def Cube "Floor_Collider" (
+        active = true
+        prepend apiSchemas = ["MaterialBindingAPI"]
+    )
+    {
+        rel material:binding = </Sky/Floor_Collider/DefaultMaterial> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        double size = 0.2
+        float3 xformOp:scale = (100, 0.1, 100)
+        float3 xformOp:translate = (0, -0.01, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def Material "DefaultMaterial"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+            token outputs:surface.connect = </Sky/Floor_Collider/DefaultMaterial/DefaultSurfaceShader.outputs:surface>
+
+            def Shader "DefaultSurfaceShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (1, 1, 1)
+                float inputs:opacity = 0
+                float inputs:opacityThreshold = 1
+                float inputs:roughness = 1
+                token outputs:surface
+            }
+        }
+
+        def RealityKitComponent "Collider"
+        {
+            uint group = 1
+            uniform token info:id = "RealityKit.Collider"
+            uint mask = 4294967295
+            token type = "Default"
+
+            def RealityKitStruct "Shape"
+            {
+                float3 extent = (0.2, 0.2, 0.2)
+                token shapeType = "Box"
+
+                def RealityKitStruct "pose"
+                {
+                }
+            }
+        }
+
+        def RealityKitComponent "RigidBody"
+        {
+            bool gravityEnabled = 0
+            uniform token info:id = "RealityKit.RigidBody"
+            token motionType = "Static"
+
+            def RealityKitStruct "massFrame"
+            {
+                def RealityKitStruct "m_pose"
+                {
+                }
+            }
+
+            def RealityKitStruct "material"
+            {
+            }
         }
     }
 }

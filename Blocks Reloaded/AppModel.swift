@@ -24,6 +24,10 @@ class AppModel {
     public var isPinchingRightHand: Bool = false
     public var rightPinchPosition: SIMD3<Float> = .zero
     
+    // Hand root entities
+    public var leftHandRoot: Entity?
+    public var rightHandRoot: Entity?
+    
     public init() { }
     
     /// Creates a block with the given properties and adds it to the scene
@@ -60,21 +64,18 @@ class AppModel {
         physics.isAffectedByGravity = true
         physics.isContinuousCollisionDetectionEnabled = true // Enable continuous collision detection
         cube.components[PhysicsBodyComponent.self] = physics
-        
-        // Add physics simulation component
-        //var physicsSimulation = PhysicsSimulationComponent()
-        //cube.components[PhysicsSimulationComponent.self] = physicsSimulation
 
         let physicsMotion =  PhysicsMotionComponent()
         cube.components[PhysicsMotionComponent.self] = physicsMotion
 
-        // Add a highlight HoverEffectComponent
+        /*
         let highlightStyle = HoverEffectComponent.HighlightHoverEffectStyle(
             color: .orange,
             strength: 0.8
         )
         let hoverEffect = HoverEffectComponent(.highlight(highlightStyle))
         cube.components.set(hoverEffect)
+        */
         
         cube.components.set(InputTargetComponent(allowedInputTypes: .direct))
         
