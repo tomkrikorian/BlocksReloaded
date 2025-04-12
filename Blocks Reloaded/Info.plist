@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSHandsTrackingUsageDescription</key>
-	<string>Hand Tracking is required for this sample</string>
+	<string>Hand Tracking is used for interacting with virtual elements.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationPreferredDefaultSceneSessionRole</key>
