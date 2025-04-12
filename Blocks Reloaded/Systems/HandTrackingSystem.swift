@@ -335,15 +335,25 @@ struct HandTrackingSystem: System {
         thumbWorldPos: SIMD3<Float>,
         indexWorldPos: SIMD3<Float>
     ) {
-        if handComponent.chirality == .left {
-            AppModel.shared.isPinchingLeftHand = isPinching
-            if isPinching {
-                AppModel.shared.leftPinchPosition = (thumbWorldPos + indexWorldPos) * 0.5
+        // Only update the app model if the pinch is valid (after 1 second)
+        if handComponent.isPinchValid {
+            if handComponent.chirality == .left {
+                AppModel.shared.isPinchingLeftHand = isPinching
+                if isPinching {
+                    AppModel.shared.leftPinchPosition = (thumbWorldPos + indexWorldPos) * 0.5
+                }
+            } else if handComponent.chirality == .right {
+                AppModel.shared.isPinchingRightHand = isPinching
+                if isPinching {
+                    AppModel.shared.rightPinchPosition = (thumbWorldPos + indexWorldPos) * 0.5
+                }
             }
-        } else if handComponent.chirality == .right {
-            AppModel.shared.isPinchingRightHand = isPinching
-            if isPinching {
-                AppModel.shared.rightPinchPosition = (thumbWorldPos + indexWorldPos) * 0.5
+        } else {
+            // Reset pinch state if not valid
+            if handComponent.chirality == .left {
+                AppModel.shared.isPinchingLeftHand = false
+            } else if handComponent.chirality == .right {
+                AppModel.shared.isPinchingRightHand = false
             }
         }
     }
@@ -358,60 +368,77 @@ struct HandTrackingSystem: System {
         leftHandEntity: inout Entity?,
         rightHandEntity: inout Entity?
     ) {
+        let currentTime = Date().timeIntervalSince1970
+        
         if isPinching {
-            if handComponent.pinchSphere == nil {
-                // Create a ring (circle with a hole)
-                let circlePath = Path { path in
-                    path.addArc(center: .zero, radius: 0.04,
-                                startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
-                    path.addArc(center: .zero, radius: 0.03,
-                                startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
-                }
-                
-                var extrusionOptions = MeshResource.ShapeExtrusionOptions()
-                extrusionOptions.extrusionMethod = .linear(depth: 0.005)
-                extrusionOptions.boundaryResolution = .uniformSegmentsPerSpan(segmentCount: 32)
-                
-                var material = PhysicallyBasedMaterial()
-                material.baseColor = .init(tint: .blue)
-                material.emissiveColor = .init(color: .blue)
-                material.emissiveIntensity = 1.0
-                
-                let circle = ModelEntity(
-                    mesh: try! MeshResource(extruding: circlePath, extrusionOptions: extrusionOptions),
-                    materials: [material]
-                )
-                
-                // Add audio component to the circle
-                do {
-                    let audioResource = try AudioFileResource.load(
-                        named: "SFX_RingLoop",
-                        configuration: .init(shouldLoop: true)
-                    )
-                    
-                    var spatialAudio = SpatialAudioComponent()
-                    spatialAudio.gain = -10.0 // Lower volume for SFX
-                    circle.spatialAudio = spatialAudio
-                    circle.playAudio(audioResource)
-                } catch {
-                    print("Error loading ring loop audio: \(error.localizedDescription)")
-                }
-                
-                entity.addChild(circle)
-                handComponent.pinchSphere = circle
+            // If this is the start of a pinch, record the time
+            if handComponent.pinchStartTime == 0 {
+                handComponent.pinchStartTime = currentTime
             }
             
-            if let circle = handComponent.pinchSphere {
-                circle.position = midpoint
-                if handComponent.chirality == .left {
-                    leftHandSphere = circle
-                    leftHandEntity = entity
-                } else {
-                    rightHandSphere = circle
-                    rightHandEntity = entity
+            // Check if we've been pinching for at least 1 second
+            let pinchDuration = currentTime - handComponent.pinchStartTime
+            handComponent.isPinchValid = pinchDuration >= 0.25
+            
+            if handComponent.isPinchValid {
+                if handComponent.pinchSphere == nil {
+                    // Create a ring (circle with a hole)
+                    let circlePath = Path { path in
+                        path.addArc(center: .zero, radius: 0.04,
+                                    startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                        path.addArc(center: .zero, radius: 0.03,
+                                    startAngle: .degrees(0), endAngle: .degrees(360), clockwise: false)
+                    }
+                    
+                    var extrusionOptions = MeshResource.ShapeExtrusionOptions()
+                    extrusionOptions.extrusionMethod = .linear(depth: 0.005)
+                    extrusionOptions.boundaryResolution = .uniformSegmentsPerSpan(segmentCount: 32)
+                    
+                    var material = PhysicallyBasedMaterial()
+                    material.baseColor = .init(tint: .blue)
+                    material.emissiveColor = .init(color: .blue)
+                    material.emissiveIntensity = 1.0
+                    
+                    let circle = ModelEntity(
+                        mesh: try! MeshResource(extruding: circlePath, extrusionOptions: extrusionOptions),
+                        materials: [material]
+                    )
+                    
+                    // Add audio component to the circle
+                    do {
+                        let audioResource = try AudioFileResource.load(
+                            named: "SFX_RingLoop",
+                            configuration: .init(shouldLoop: true)
+                        )
+                        
+                        var spatialAudio = SpatialAudioComponent()
+                        spatialAudio.gain = -10.0 // Lower volume for SFX
+                        circle.spatialAudio = spatialAudio
+                        circle.playAudio(audioResource)
+                    } catch {
+                        print("Error loading ring loop audio: \(error.localizedDescription)")
+                    }
+                    
+                    entity.addChild(circle)
+                    handComponent.pinchSphere = circle
+                }
+                
+                if let circle = handComponent.pinchSphere {
+                    circle.position = midpoint
+                    if handComponent.chirality == .left {
+                        leftHandSphere = circle
+                        leftHandEntity = entity
+                    } else {
+                        rightHandSphere = circle
+                        rightHandEntity = entity
+                    }
                 }
             }
         } else {
+            // Reset pinch timing when not pinching
+            handComponent.pinchStartTime = 0
+            handComponent.isPinchValid = false
+            
             // Remove the ring when not pinching
             if let circle = handComponent.pinchSphere {
                 circle.removeFromParent()

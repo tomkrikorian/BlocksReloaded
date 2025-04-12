@@ -53,8 +53,8 @@ class AppModel {
         
         // Add physics body component with improved physics settings
         var physics = PhysicsBodyComponent(
-            massProperties: .init(mass: 1.0), // Increased mass for better interaction
-            material: .generate(staticFriction: 0.5, dynamicFriction: 0.4, restitution: 0.3), // Adjusted for better bouncing
+            massProperties: .default, // Increased mass for better interaction
+            material: .default, // Adjusted for better bouncing
             mode: .dynamic
         )
         physics.isAffectedByGravity = true
@@ -62,13 +62,19 @@ class AppModel {
         cube.components[PhysicsBodyComponent.self] = physics
         
         // Add physics simulation component
-        var physicsSimulation = PhysicsSimulationComponent()
-        physicsSimulation.collisionOptions = .all
-        cube.components[PhysicsSimulationComponent.self] = physicsSimulation
+        //var physicsSimulation = PhysicsSimulationComponent()
+        //cube.components[PhysicsSimulationComponent.self] = physicsSimulation
 
-        var physicsMotion =  PhysicsMotionComponent()
+        let physicsMotion =  PhysicsMotionComponent()
         cube.components[PhysicsMotionComponent.self] = physicsMotion
 
+        // Add a highlight HoverEffectComponent
+        let highlightStyle = HoverEffectComponent.HighlightHoverEffectStyle(
+            color: .orange,
+            strength: 0.8
+        )
+        let hoverEffect = HoverEffectComponent(.highlight(highlightStyle))
+        cube.components.set(hoverEffect)
         
         cube.components.set(InputTargetComponent(allowedInputTypes: .direct))
         

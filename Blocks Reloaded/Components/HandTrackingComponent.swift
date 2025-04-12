@@ -22,6 +22,12 @@ struct HandTrackingComponent: Component {
     /// Last known positions of joints for change detection
     var lastJointPositions: [HandSkeleton.JointName: SIMD3<Float>] = [:]
     
+    /// Time when the pinch started
+    var pinchStartTime: TimeInterval = 0
+    
+    /// Whether the pinch is valid (after delay)
+    var isPinchValid: Bool = false
+    
     /// Creates a new hand-tracking component.
     /// - Parameter chirality: The chirality of the hand target.
     init(chirality: HandAnchor.Chirality) {
