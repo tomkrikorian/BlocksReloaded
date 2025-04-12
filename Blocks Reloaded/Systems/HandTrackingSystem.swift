@@ -56,7 +56,7 @@ struct HandTrackingSystem: System {
             if handComponent.fingers.isEmpty {
                 addJoints(to: entity, handComponent: &handComponent)
             }
-            
+
             // Find the relevant HandAnchor (left or right).
             guard let handAnchor: HandAnchor = {
                 switch handComponent.chirality {
@@ -71,7 +71,7 @@ struct HandTrackingSystem: System {
             // If the skeleton is available, update everything
             if let handSkeleton = handAnchor.handSkeleton {
                 updateJointPositions(handSkeleton: handSkeleton, handComponent: &handComponent, handAnchor: handAnchor)
-                
+
                 // Identify pinch location between thumb and index
                 let (thumbPos, indexPos) = getThumbAndIndexPositions(handSkeleton: handSkeleton)
                 let (thumbWorldPos, indexWorldPos) = getWorldPositions(thumbPos: thumbPos, indexPos: indexPos, handAnchor: handAnchor)
@@ -141,70 +141,158 @@ struct HandTrackingSystem: System {
             )
         }
         
-        // If we haven't created cylinders yet, do it once
-        if handComponent.cylinders.isEmpty {
-            createCylinders(handComponent: &handComponent, handSkeleton: handSkeleton)
+        // If we haven't created bones yet, do it once
+        if handComponent.bones.isEmpty {
+            print("🦴 Creating bones for hand: \(handComponent.chirality)")
+            createBones(handComponent: &handComponent, handSkeleton: handSkeleton)
+            print("🦴 Created \(handComponent.bones.count) bones")
+        }
+        
+        // Update bone positions and orientations
+        print("🦴 Updating \(handComponent.bones.count) bones")
+        for (childJoint, boneModel) in handComponent.bones {
+            // Find the parent joint for this bone
+            guard let parentJoint = findParentJoint(for: childJoint),
+                  let parentEntity = handComponent.fingers[parentJoint],
+                  let childEntity = handComponent.fingers[childJoint],
+                  let holder = boneModel.parent else {
+                print("❌ Could not find parent/child entities for bone at joint: \(childJoint)")
+                continue
+            }
+            
+            // Calculate the direction and distance between joints in world space
+            let parentWorldPos = parentEntity.position(relativeTo: nil)
+            let childWorldPos = childEntity.position(relativeTo: nil)
+            let worldDirection = childWorldPos - parentWorldPos
+            let distance = simd_length(worldDirection)
+            
+            print("🦴 Updating bone for \(childJoint): distance=\(distance)")
+            
+            // Update the holder's position and orientation in world space
+            holder.position = parentWorldPos
+            holder.look(at: childWorldPos, from: parentWorldPos, relativeTo: nil)
+            
+            // Update the bone's scale and position
+            boneModel.transform = Transform(
+                scale: [1, distance, 1],
+                rotation: simd_quatf(angle: .pi / 2, axis: [1, 0, 0]),
+                translation: [0, 0, -distance * 0.5]
+            )
+        }
+    }
+    
+    private func findParentJoint(for joint: HandSkeleton.JointName) -> HandSkeleton.JointName? {
+        switch joint {
+        // Thumb
+        case .thumbIntermediateBase: return .thumbKnuckle
+        case .thumbTip: return .thumbIntermediateBase
+            
+        // Index finger
+        case .indexFingerIntermediateBase: return .indexFingerKnuckle
+        case .indexFingerIntermediateTip: return .indexFingerIntermediateBase
+        case .indexFingerTip: return .indexFingerIntermediateTip
+            
+        // Middle finger
+        case .middleFingerIntermediateBase: return .middleFingerKnuckle
+        case .middleFingerIntermediateTip: return .middleFingerIntermediateBase
+        case .middleFingerTip: return .middleFingerIntermediateTip
+            
+        // Ring finger
+        case .ringFingerIntermediateBase: return .ringFingerKnuckle
+        case .ringFingerIntermediateTip: return .ringFingerIntermediateBase
+        case .ringFingerTip: return .ringFingerIntermediateTip
+            
+        // Little finger
+        case .littleFingerIntermediateBase: return .littleFingerKnuckle
+        case .littleFingerIntermediateTip: return .littleFingerIntermediateBase
+        case .littleFingerTip: return .littleFingerIntermediateTip
+            
+        default: return nil
         }
     }
     
     // ----------------------------------------------------------------
-    // (A) Create cylinders once for each consecutive joint pair
+    // Create bones (cylinders) between connected joints
     // ----------------------------------------------------------------
     
-    private func createCylinders(handComponent: inout HandTrackingComponent, handSkeleton: HandSkeleton) {
-        for joint in HandSkeleton.JointName.allCases {
-            // Skip wrist and forearm joints as they don't have parent joints
-            if joint == .wrist || joint == .forearmWrist || joint == .forearmArm {
+    private func createBones(handComponent: inout HandTrackingComponent, handSkeleton: HandSkeleton) {
+        // Define bone connections - each tuple represents a bone from parent to child joint
+        let boneConnections: [(parent: HandSkeleton.JointName, child: HandSkeleton.JointName)] = [
+            // Thumb
+            (.thumbKnuckle, .thumbIntermediateBase),
+            (.thumbIntermediateBase, .thumbTip),
+            
+            // Index finger
+            (.indexFingerKnuckle, .indexFingerIntermediateBase),
+            (.indexFingerIntermediateBase, .indexFingerIntermediateTip),
+            (.indexFingerIntermediateTip, .indexFingerTip),
+            
+            // Middle finger
+            (.middleFingerKnuckle, .middleFingerIntermediateBase),
+            (.middleFingerIntermediateBase, .middleFingerIntermediateTip),
+            (.middleFingerIntermediateTip, .middleFingerTip),
+            
+            // Ring finger
+            (.ringFingerKnuckle, .ringFingerIntermediateBase),
+            (.ringFingerIntermediateBase, .ringFingerIntermediateTip),
+            (.ringFingerIntermediateTip, .ringFingerTip),
+            
+            // Little finger
+            (.littleFingerKnuckle, .littleFingerIntermediateBase),
+            (.littleFingerIntermediateBase, .littleFingerIntermediateTip),
+            (.littleFingerIntermediateTip, .littleFingerTip)
+        ]
+        
+        print("🦴 Starting bone creation with \(boneConnections.count) connections")
+        
+        for (parentJoint, childJoint) in boneConnections {
+            guard let parentEntity = handComponent.fingers[parentJoint],
+                  let childEntity = handComponent.fingers[childJoint],
+                  let handEntity = parentEntity.parent else {
+                print("❌ Could not find entities for bone connection: \(parentJoint) -> \(childJoint)")
                 continue
             }
             
-            let skeletonJoint = handSkeleton.joint(joint)
-            guard let parentJoint = skeletonJoint.parentJoint else { continue }
+            print("🦴 Creating bone: \(parentJoint) -> \(childJoint)")
             
-            // Get the transform from the joint to its parent in local space
-            let parentFromJointTransform = skeletonJoint.parentFromJointTransform
-            
-            // Extract position from the transform
-            let position = SIMD3<Float>(
-                parentFromJointTransform.columns.3.x,
-                parentFromJointTransform.columns.3.y,
-                parentFromJointTransform.columns.3.z
-            )
-            
-            // Calculate the distance between joints
-            let distance = simd_length(position)
-            
-            // Create cylinder with correct transform
-            let cylinderMaterial = SimpleMaterial(color: .white, isMetallic: false)
-            let cylinderModel = ModelEntity(
+            // Create a cylinder to represent the bone
+            let boneMaterial = SimpleMaterial(color: .white, isMetallic: false)
+            let boneModel = ModelEntity(
                 mesh: .generateCylinder(height: 1.0, radius: 0.002),
-                materials: [cylinderMaterial]
+                materials: [boneMaterial]
             )
             
-            // Create a holder entity to manage the cylinder's transform
+            // Create a holder entity to manage the bone's transform
             let holder = Entity()
+            handEntity.addChild(holder)
             
-            // Position the holder at the parent joint
-            holder.position = .zero
+            // Calculate the direction and distance between joints in world space
+            let parentWorldPos = parentEntity.position(relativeTo: nil)
+            let childWorldPos = childEntity.position(relativeTo: nil)
+            let worldDirection = childWorldPos - parentWorldPos
+            let distance = simd_length(worldDirection)
+            
+            print("🦴 Bone distance: \(distance)")
+            
+            // Position the holder at the parent joint in world space
+            holder.position = parentWorldPos
             
             // Orient the holder to point from parent to child joint
-            holder.look(at: position, from: .zero, relativeTo: nil)
+            holder.look(at: childWorldPos, from: parentWorldPos, relativeTo: nil)
             
-            // Add the cylinder to the holder
-            let rotationAngle: Float = handComponent.chirality == .left ? -.pi / 2 : .pi / 2
-            cylinderModel.transform = Transform(
+            // Configure the bone cylinder
+            boneModel.transform = Transform(
                 scale: [1, distance, 1],
-                rotation: simd_quatf(angle: rotationAngle, axis: [1, 0, 0]), // Rotate to align with Y axis
-                translation: [0, 0, -distance * 0.5] // Offset by half the length in local space
+                rotation: simd_quatf(angle: .pi / 2, axis: [1, 0, 0]),
+                translation: [0, 0, -distance * 0.5]
             )
-            holder.addChild(cylinderModel)
             
-            // Add the holder to the parent joint
-            if let parentJointEntity = handComponent.fingers[parentJoint.name] {
-                parentJointEntity.addChild(holder)
-                handComponent.cylinders[joint] = cylinderModel
-            }
+            holder.addChild(boneModel)
+            handComponent.bones[childJoint] = boneModel
+            print("🦴 Successfully created bone for \(childJoint)")
         }
+        
+        print("🦴 Finished creating bones. Total bones created: \(handComponent.bones.count)")
     }
     
     // ----------------------------------------------------------------

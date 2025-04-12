@@ -8,28 +8,23 @@ import ARKit
 /// A component that tracks the hand skeleton.
 struct HandTrackingComponent: Component {
     /// The chirality for the hand this component tracks.
-    let chirality: AnchoringComponent.Target.Chirality
+    var chirality: HandAnchor.Chirality
 
     /// A lookup that maps each joint name to the entity that represents it.
-    var fingers: [HandSkeleton.JointName: Entity] = [:]
+    var fingers: [HandSkeleton.JointName: ModelEntity] = [:]
     
-    /// A lookup that maps each joint name to its connecting cylinder
-    var cylinders: [HandSkeleton.JointName: ModelEntity] = [:]
-    
-    var cylinderConnections: [HandSkeleton.JointName: HandSkeleton.JointName] = [:]
+    /// A lookup that maps each joint name to the bone entity that represents it.
+    var bones: [HandSkeleton.JointName: ModelEntity] = [:]
 
     /// The sphere entity that appears when pinching
     var pinchSphere: ModelEntity?
-    
-    /// Threshold for updating cylinder positions (in meters)
-    let updateThreshold: Float = 0.001
     
     /// Last known positions of joints for change detection
     var lastJointPositions: [HandSkeleton.JointName: SIMD3<Float>] = [:]
     
     /// Creates a new hand-tracking component.
     /// - Parameter chirality: The chirality of the hand target.
-    init(chirality: AnchoringComponent.Target.Chirality) {
+    init(chirality: HandAnchor.Chirality) {
         self.chirality = chirality
         HandTrackingSystem.registerSystem()
     }
