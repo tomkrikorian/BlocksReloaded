@@ -70,6 +70,25 @@ struct ImmersiveView: View {
             makeHandEntities(in: rootEntity)
             makeBlockCreatorEntity(in: rootEntity)
             
+            // Add collision event subscription
+            content.subscribe(to: CollisionEvents.Began.self) { collisionEvent in
+                Task { @MainActor in
+                    do {
+                        let audioResource = try AudioFileResource.load(
+                            named: "SFX_Impact",
+                            configuration: .init(shouldLoop: false)
+                        )
+                        
+                        var spatialAudio = SpatialAudioComponent()
+                        spatialAudio.gain = -5.0
+                        collisionEvent.entityA.spatialAudio = spatialAudio
+                        collisionEvent.entityA.playAudio(audioResource)
+                    } catch {
+                        print("Error loading impact audio: \(error.localizedDescription)")
+                    }
+                }
+            }
+            
             // Add introduction attachment
             if let introductionAttachment = attachments.entity(for: "introduction") {
                 // Position the attachment 2 meters in front of the user

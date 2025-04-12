@@ -84,7 +84,7 @@ class AppModel {
         )
         let hoverEffect = HoverEffectComponent(.highlight(highlightStyle))
         childEntity.components.set(hoverEffect)
-                
+
         // Play creation sound effect
         do {
             let audioResource = try AudioFileResource.load(
