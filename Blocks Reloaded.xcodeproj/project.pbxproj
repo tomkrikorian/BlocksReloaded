@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		826B6C992DA94D8100679EC0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 826B6C982DA94D8100679EC0 /* RealityKitContent */; };
+		82BEEC872DAADC24003521DA /* ScenesManager in Frameworks */ = {isa = PBXBuildFile; productRef = 82BEEC862DAADC24003521DA /* ScenesManager */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,11 +26,22 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		82BEECF72DAAE149003521DA /* Exceptions for "Blocks Reloaded" folder in "Compile Sources" phase from "Blocks Reloaded" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 826B6C8F2DA94D8100679EC0 /* Sources */;
+			membershipExceptions = (
+				Utilities/MetalPacking.h,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		826B6C952DA94D8100679EC0 /* Blocks Reloaded */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				826B6CA72DA94D8300679EC0 /* Exceptions for "Blocks Reloaded" folder in "Blocks Reloaded" target */,
+				82BEECF72DAAE149003521DA /* Exceptions for "Blocks Reloaded" folder in "Compile Sources" phase from "Blocks Reloaded" target */,
 			);
 			path = "Blocks Reloaded";
 			sourceTree = "<group>";
@@ -42,6 +54,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				826B6C992DA94D8100679EC0 /* RealityKitContent in Frameworks */,
+				82BEEC872DAADC24003521DA /* ScenesManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +107,7 @@
 			name = "Blocks Reloaded";
 			packageProductDependencies = (
 				826B6C982DA94D8100679EC0 /* RealityKitContent */,
+				82BEEC862DAADC24003521DA /* ScenesManager */,
 			);
 			productName = "Blocks Reloaded";
 			productReference = 826B6C932DA94D8100679EC0 /* Blocks Reloaded.app */;
@@ -123,6 +137,9 @@
 			);
 			mainGroup = 826B6C8A2DA94D8100679EC0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				82BEEC852DAADC24003521DA /* XCRemoteSwiftPackageReference "ScenesManager" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 826B6C942DA94D8100679EC0 /* Products */;
 			projectDirPath = "";
@@ -350,10 +367,26 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		82BEEC852DAADC24003521DA /* XCRemoteSwiftPackageReference "ScenesManager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Tab-To-Tap/ScenesManager.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		826B6C982DA94D8100679EC0 /* RealityKitContent */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = RealityKitContent;
+		};
+		82BEEC862DAADC24003521DA /* ScenesManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 82BEEC852DAADC24003521DA /* XCRemoteSwiftPackageReference "ScenesManager" */;
+			productName = ScenesManager;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

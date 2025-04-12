@@ -26,14 +26,6 @@ class AppModel {
     
     public init() { }
     
-    let immersiveSpaceID = "ImmersiveSpace"
-    enum ImmersiveSpaceState {
-        case closed
-        case inTransition
-        case open
-    }
-    var immersiveSpaceState = ImmersiveSpaceState.closed
-    
     /// Creates a block with the given properties and adds it to the scene
     /// - Parameters:
     ///   - position: The position of the block in world space

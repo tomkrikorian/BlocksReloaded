@@ -8,8 +8,10 @@
 import SwiftUI
 import RealityKit
 import RealityKitContent
+import ScenesManager
 
 struct ImmersiveView: View {
+    @Environment(\.scenesManager) private var scenesManager
     @State private var initialPosition: SIMD3<Float>? = nil
     
     var translationGesture: some Gesture {
@@ -41,7 +43,7 @@ struct ImmersiveView: View {
     }
     
     var body: some View {
-        RealityView { content in
+        RealityView { content, attachments in
             // Create a root entity for the scene
             let rootEntity = Entity()
             AppModel.shared.sceneRootEntity = rootEntity
@@ -60,9 +62,35 @@ struct ImmersiveView: View {
             // Add hand tracking
             makeHandEntities(in: content)
             makeBlockCreatorEntity(in: content)
+            
+            // Add introduction attachment
+            if let introductionAttachment = attachments.entity(for: "introduction") {
+                // Position the attachment 2 meters in front of the user
+                introductionAttachment.position = [0, 1.5, -2]
+                rootEntity.addChild(introductionAttachment)
+            }
+        } attachments: {
+            Attachment(id: "introduction") {
+                IntroductionView()
+                
+                // Button to dismiss Immersive Space
+                // await scenesManager.toggleImmersiveSpace()
+            }
         }
         .upperLimbVisibility(.hidden)
         .gesture(translationGesture)
+        .immersiveSpaceTracker()
+        .sceneTracker(for: SceneId.immersiveSpace, onOpen:{onOpen()}, onDismiss: {onDismiss()})
+
+    }
+    
+    
+    func onOpen() {
+        scenesManager.dismissWindow(.mainWindow)
+    }
+    
+    func onDismiss() {
+        scenesManager.openWindow(.mainWindow)
     }
     
     /// Creates the entity that contains all hand-tracking entities.
