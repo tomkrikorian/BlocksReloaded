@@ -105,7 +105,7 @@ struct HandTrackingSystem: System {
     
     func addJoints(to handEntity: Entity, handComponent: inout HandTrackingComponent) {
         let radius: Float = 0.005
-        let material = SimpleMaterial(color: .white, isMetallic: false)
+        let material = UnlitMaterial(color: .yellow)
         
         let sphereEntity = ModelEntity(
             mesh: .generateSphere(radius: radius),
@@ -113,10 +113,10 @@ struct HandTrackingSystem: System {
         )
         
         // Add a small sphere for each joint
-        for (jointName, finger, _) in Hand.joints {
+        for joint in HandSkeleton.JointName.allCases {
             let newJoint = sphereEntity.clone(recursive: false)
             handEntity.addChild(newJoint)
-            handComponent.fingers[jointName] = newJoint
+            handComponent.fingers[joint] = newJoint
         }
         
         handEntity.components.set(handComponent)
@@ -185,27 +185,36 @@ struct HandTrackingSystem: System {
         switch joint {
         // Thumb
         case .thumbIntermediateBase: return .thumbKnuckle
-        case .thumbTip: return .thumbIntermediateBase
+        case .thumbIntermediateTip: return .thumbIntermediateBase
+        case .thumbTip: return .thumbIntermediateTip
             
         // Index finger
+        case .indexFingerKnuckle: return .indexFingerMetacarpal
         case .indexFingerIntermediateBase: return .indexFingerKnuckle
         case .indexFingerIntermediateTip: return .indexFingerIntermediateBase
         case .indexFingerTip: return .indexFingerIntermediateTip
             
         // Middle finger
+        case .middleFingerKnuckle: return .middleFingerMetacarpal
         case .middleFingerIntermediateBase: return .middleFingerKnuckle
         case .middleFingerIntermediateTip: return .middleFingerIntermediateBase
         case .middleFingerTip: return .middleFingerIntermediateTip
             
         // Ring finger
+        case .ringFingerKnuckle: return .ringFingerMetacarpal
         case .ringFingerIntermediateBase: return .ringFingerKnuckle
         case .ringFingerIntermediateTip: return .ringFingerIntermediateBase
         case .ringFingerTip: return .ringFingerIntermediateTip
             
         // Little finger
+        case .littleFingerKnuckle: return .littleFingerMetacarpal
         case .littleFingerIntermediateBase: return .littleFingerKnuckle
         case .littleFingerIntermediateTip: return .littleFingerIntermediateBase
         case .littleFingerTip: return .littleFingerIntermediateTip
+            
+        // Wrist and forearm
+        case .wrist: return .forearmWrist
+        case .forearmWrist: return .forearmArm
             
         default: return nil
         }
@@ -220,24 +229,29 @@ struct HandTrackingSystem: System {
         let boneConnections: [(parent: HandSkeleton.JointName, child: HandSkeleton.JointName)] = [
             // Thumb
             (.thumbKnuckle, .thumbIntermediateBase),
-            (.thumbIntermediateBase, .thumbTip),
+            (.thumbIntermediateBase, .thumbIntermediateTip),
+            (.thumbIntermediateTip, .thumbTip),
             
             // Index finger
+            (.indexFingerMetacarpal, .indexFingerKnuckle),
             (.indexFingerKnuckle, .indexFingerIntermediateBase),
             (.indexFingerIntermediateBase, .indexFingerIntermediateTip),
             (.indexFingerIntermediateTip, .indexFingerTip),
             
             // Middle finger
+            (.middleFingerMetacarpal, .middleFingerKnuckle),
             (.middleFingerKnuckle, .middleFingerIntermediateBase),
             (.middleFingerIntermediateBase, .middleFingerIntermediateTip),
             (.middleFingerIntermediateTip, .middleFingerTip),
             
             // Ring finger
+            (.ringFingerMetacarpal, .ringFingerKnuckle),
             (.ringFingerKnuckle, .ringFingerIntermediateBase),
             (.ringFingerIntermediateBase, .ringFingerIntermediateTip),
             (.ringFingerIntermediateTip, .ringFingerTip),
             
             // Little finger
+            (.littleFingerMetacarpal, .littleFingerKnuckle),
             (.littleFingerKnuckle, .littleFingerIntermediateBase),
             (.littleFingerIntermediateBase, .littleFingerIntermediateTip),
             (.littleFingerIntermediateTip, .littleFingerTip)
@@ -256,7 +270,7 @@ struct HandTrackingSystem: System {
             print("🦴 Creating bone: \(parentJoint) -> \(childJoint)")
             
             // Create a cylinder to represent the bone
-            let boneMaterial = SimpleMaterial(color: .white, isMetallic: false)
+            let boneMaterial = UnlitMaterial(color: .white)
             let boneModel = ModelEntity(
                 mesh: .generateCylinder(height: 1.0, radius: 0.002),
                 materials: [boneMaterial]

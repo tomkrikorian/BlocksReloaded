@@ -33,7 +33,7 @@ struct Hand {
         (.ringFingerMetacarpal, .ring, .metacarpal),
         (.ringFingerKnuckle, .ring, .knuckle),
         (.ringFingerIntermediateBase, .ring, .intermediateBase),
-        (.ringFingerIntermediateTip, .ring, .intermediateBase),
+        (.ringFingerIntermediateTip, .ring, .intermediateTip),
         (.ringFingerTip, .ring, .tip),
 
         // Define the little-finger bones.
