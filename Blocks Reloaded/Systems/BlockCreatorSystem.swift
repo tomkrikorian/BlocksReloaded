@@ -6,6 +6,7 @@
 //
 
 import RealityKit
+import RealityKitContent
 import SwiftUI
 
 /// A system that handles the creation of blocks between hands
@@ -29,10 +30,11 @@ struct BlockCreatorSystem: System {
                 
                 // Create or update the cube
                 if blockComponent.cube == nil {
-                    let cube = ModelEntity(
-                        mesh: .generateBox(size: SIMD3<Float>(1.0, 1.0, 1.0)),
-                        materials: [SimpleMaterial(color: .blue, isMetallic: false)]
-                    )
+                    // Create a cube entity from the HollowCube scene
+                    guard let cube = try? Entity.load(named: "HollowCube", in: realityKitContentBundle) else {
+                        return
+                    }
+                    
                     entity.addChild(cube)
                     blockComponent.cube = cube
                 }

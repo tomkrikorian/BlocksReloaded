@@ -1,0 +1,40 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (448.100.13)"
+    }
+    defaultPrim = "HollowCube"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "HollowCube" (
+    active = true
+    references = @HollowCube.usdz@
+)
+{
+    quatf xformOp:orient = (1, 0, 0, 0)
+    float3 xformOp:scale = (0.005, 0.005, 0.005)
+    float3 xformOp:translate = (0, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    over "Materials"
+    {
+        over "Cube_Edge_Glow_Material"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+
+            over "Cube_Edge_Glow_MaterialPreviewSurface"
+            {
+                color3f inputs:diffuseColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+                color3f inputs:emissiveColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+            }
+        }
+    }
+}
+

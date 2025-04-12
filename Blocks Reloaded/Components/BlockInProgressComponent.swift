@@ -10,7 +10,7 @@ import RealityKit
 /// A component that tracks the state of a block being created between two hands
 struct BlockInProgressComponent: Component {
     /// The cube entity that represents the block being created
-    var cube: ModelEntity?
+    var cube: Entity?
     
     /// The current state of the block creation
     enum State {

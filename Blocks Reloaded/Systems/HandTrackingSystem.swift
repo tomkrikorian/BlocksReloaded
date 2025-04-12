@@ -3,6 +3,7 @@ Abstract:
 A system that updates entities that have hand-tracking components.
 */
 import RealityKit
+import SwiftUI
 import ARKit
 
 /// A system that provides hand-tracking capabilities.
@@ -204,28 +205,58 @@ struct HandTrackingSystem: System {
     ) {
         if isPinching {
             if handComponent.pinchSphere == nil {
-                let sphere = ModelEntity(
-                    mesh: .generateSphere(radius: 0.02),
-                    materials: [SimpleMaterial(color: .red, isMetallic: false)]
+                // Create a circle path
+                let circlePath = Path { path in
+                    // Outer circle
+                    path.addArc(center: .zero,
+                              radius: 0.04,
+                              startAngle: .degrees(0),
+                              endAngle: .degrees(360),
+                              clockwise: true)
+                    
+                    // Inner circle (hole)
+                    path.addArc(center: .zero,
+                              radius: 0.03,
+                              startAngle: .degrees(0),
+                              endAngle: .degrees(360),
+                              clockwise: false)
+                }
+                
+                // Create extrusion options
+                var extrusionOptions = MeshResource.ShapeExtrusionOptions()
+                extrusionOptions.extrusionMethod = .linear(depth: 0.005) // 5mm depth
+                extrusionOptions.boundaryResolution = .uniformSegmentsPerSpan(segmentCount: 32)
+                
+                // Create blue emissive material
+                var material = PhysicallyBasedMaterial()
+                material.baseColor = PhysicallyBasedMaterial.BaseColor(tint: .blue)
+                material.emissiveColor = PhysicallyBasedMaterial.EmissiveColor(color: .blue)
+                material.emissiveIntensity = 1.0
+                
+                // Create the circle entity
+                let circle = ModelEntity(
+                    mesh: try! MeshResource(extruding: circlePath, extrusionOptions: extrusionOptions),
+                    materials: [material]
                 )
-                entity.addChild(sphere)
-                handComponent.pinchSphere = sphere
+                
+                entity.addChild(circle)
+                handComponent.pinchSphere = circle
             }
             
-            if let sphere = handComponent.pinchSphere {
-                sphere.position = midpoint
+            if let circle = handComponent.pinchSphere {
+                circle.position = midpoint
                 
                 if handComponent.chirality == .left {
-                    leftHandSphere = sphere
+                    leftHandSphere = circle
                     leftHandEntity = entity
                 } else {
-                    rightHandSphere = sphere
+                    rightHandSphere = circle
                     rightHandEntity = entity
                 }
             }
         } else {
-            if let sphere = handComponent.pinchSphere {
-                sphere.removeFromParent()
+            if let circle = handComponent.pinchSphere {
+                circle.removeFromParent()
                 handComponent.pinchSphere = nil
             }
         }

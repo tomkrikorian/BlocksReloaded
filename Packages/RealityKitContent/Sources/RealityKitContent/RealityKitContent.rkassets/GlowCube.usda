@@ -1,0 +1,71 @@
+#usda 1.0
+(
+    customLayerData = {
+        string creator = "Reality Composer Pro Version 2.0 (448.100.13)"
+    }
+    defaultPrim = "GlowCube"
+    metersPerUnit = 1
+    upAxis = "Y"
+)
+
+def "GlowCube" (
+    active = true
+    prepend references = @GlowCube.usdz@
+)
+{
+    float3 xformOp:scale = (0.005, 0.005, 0.005)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+    over "Materials"
+    {
+        over "Cube_Edge_Material_Glow_001"
+        {
+            token outputs:mtlx:surface
+            token outputs:realitykit:vertex
+
+            over "Cube_Edge_Material_Glow_001PreviewSurface"
+            {
+                color3f inputs:diffuseColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+                color3f inputs:emissiveColor = (1, 0.7490196, 0.39215684) (
+                    colorSpace = "srgb_displayp3"
+                )
+            }
+        }
+
+        over "Cube_Face_Material_Red"
+        {
+            token outputs:mtlx:surface.connect = </GlowCube/Materials/Cube_Face_Material_Red/PreviewSurface.outputs:out>
+            token outputs:realitykit:vertex
+            token outputs:surface.connect = </GlowCube/Materials/Cube_Face_Material_Red/Cube_Face_Material_RedPreviewSurface.outputs:surface>
+            float2 ui:nodegraph:realitykit:subgraphOutputs:pos = (0, 110.5)
+
+            over "Cube_Face_Material_RedPreviewSurface" (
+                active = true
+            )
+            {
+                color3f inputs:diffuseColor = (0.2559383, 0.24786846, 0.25144976) (
+                    colorSpace = "srgb_displayp3"
+                )
+                color3f inputs:emissiveColor = (0.27284148, 0.2947908, 0.30525962) (
+                    colorSpace = "srgb_displayp3"
+                )
+                float inputs:metallic = 1
+                normal3f inputs:normal = (0, 0, 0)
+                float inputs:opacityThreshold
+                float inputs:roughness = 1
+            }
+
+            def Shader "PreviewSurface" (
+                active = false
+            )
+            {
+                uniform token info:id = "ND_UsdPreviewSurface_surfaceshader"
+                token outputs:out
+                float2 ui:nodegraph:node:pos = (-255, 105)
+            }
+        }
+    }
+}
+

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import RealityKit
+import RealityKitContent
 
 /// Maintains app-wide state
 @MainActor
@@ -40,13 +41,13 @@ class AppModel {
     ///   - scale: The scale of the block
     /// - Returns: The created block entity
     @MainActor
-    func createBlock(position: SIMD3<Float>, orientation: simd_quatf, scale: SIMD3<Float>) -> ModelEntity? {
+    func createBlock(position: SIMD3<Float>, orientation: simd_quatf, scale: SIMD3<Float>) -> Entity? {
         guard let root = sceneRootEntity else { return nil }
         
-        let cube = ModelEntity(
-            mesh: .generateBox(size: SIMD3<Float>(1.0, 1.0, 1.0)),
-            materials: [SimpleMaterial(color: .blue, isMetallic: false)]
-        )
+        // Create a cube entity from the GlowCube scene
+        guard let cube = try? Entity.load(named: "GlowCube", in: realityKitContentBundle) else {
+            return nil
+        }
         
         cube.position = position
         cube.orientation = orientation
