@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/.build/index-build/arm64-apple-macosx/debug/RealityKitContent.build/master.swiftdeps"
+  },
+  "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/Sources/RealityKitContent/RealityKitContent.swift": {
+    "dependencies": "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/.build/index-build/arm64-apple-macosx/debug/RealityKitContent.build/RealityKitContent.d",
+    "object": "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/.build/index-build/arm64-apple-macosx/debug/RealityKitContent.build/RealityKitContent.swift.o",
+    "swiftmodule": "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/.build/index-build/arm64-apple-macosx/debug/RealityKitContent.build/RealityKitContent~partial.swiftmodule",
+    "swift-dependencies": "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/.build/index-build/arm64-apple-macosx/debug/RealityKitContent.build/RealityKitContent.swiftdeps"
+  }
+}

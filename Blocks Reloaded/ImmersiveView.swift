@@ -10,6 +10,36 @@ import RealityKit
 import RealityKitContent
 
 struct ImmersiveView: View {
+    @State private var initialPosition: SIMD3<Float>? = nil
+    
+    var translationGesture: some Gesture {
+        DragGesture()
+            .targetedToAnyEntity()
+            .onChanged({ value in
+                /// The entity that the drag gesture targets.
+                let rootEntity = value.entity
+
+                // Set `initialPosition` to the initial position of the entity if it is `nil`.
+                if initialPosition == nil {
+                    initialPosition = rootEntity.position
+                    rootEntity.components.remove(PhysicsBodyComponent.self)
+                }
+
+                /// The movement that converts a global world space to the scene world space of the entity.
+                let movement = value.convert(value.translation3D, from: .global, to: .scene)
+
+                // Apply the entity position to match the drag gesture
+                rootEntity.position = (initialPosition ?? .zero) + movement
+            })
+            .onEnded({ value in
+                var physics = PhysicsBodyComponent()
+                physics.isAffectedByGravity = true
+                value.entity.components.set(physics)
+                // Reset the `initialPosition` to `nil` when the gesture ends.
+                initialPosition = nil
+            })
+    }
+    
     var body: some View {
         RealityView { content in
             // Create a root entity for the scene
@@ -27,6 +57,7 @@ struct ImmersiveView: View {
             makeBlockCreatorEntity(in: content)
         }
         .upperLimbVisibility(.hidden)
+        .gesture(translationGesture)
     }
     
     /// Creates the entity that contains all hand-tracking entities.
