@@ -14,8 +14,8 @@
             filePath = "Blocks Reloaded/Views/SplashScreen/SplashScreenForeground.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "91"
-            endingLineNumber = "91"
+            startingLineNumber = "94"
+            endingLineNumber = "94"
             landmarkName = "makeGraphicEntity()"
             landmarkType = "9">
          </BreakpointContent>

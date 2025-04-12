@@ -13,7 +13,7 @@ import ScenesManager
 struct ImmersiveView: View {
     @Environment(\.scenesManager) private var scenesManager
     @State private var initialPosition: SIMD3<Float>? = nil
-    @State var gravity: SIMD3<Float> = [0, -9.8, 0]
+    @Environment(AppModel.self) private var appModel
     
     var translationGesture: some Gesture {
         DragGesture()
@@ -50,7 +50,7 @@ struct ImmersiveView: View {
             rootEntity.name = "SCENE_ROOT"
             
             var simulation = PhysicsSimulationComponent()
-            simulation.gravity = gravity
+            simulation.gravity = appModel.gravity
             rootEntity.components.set(simulation)
             
             AppModel.shared.sceneRootEntity = rootEntity
@@ -79,11 +79,16 @@ struct ImmersiveView: View {
         } attachments: {
             Attachment(id: "introduction") {
                 IntroductionView()
-                
-                // Button to dismiss Immersive Space
-                // await scenesManager.toggleImmersiveSpace()
             }
         }
+        .onChange(of: appModel.gravity, { oldValue, newValue in
+            var simulation = PhysicsSimulationComponent()
+            simulation.gravity = appModel.gravity
+            guard let sceneRoot = appModel.sceneRootEntity else {
+                return
+            }
+            sceneRoot.components.set(simulation)
+        })
         .upperLimbVisibility(.hidden)
         .persistentSystemOverlays(.hidden)
         .gesture(translationGesture)

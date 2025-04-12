@@ -3,14 +3,14 @@
     customLayerData = {
         string creator = "Reality Composer Pro Version 2.0 (448.100.13)"
     }
-    defaultPrim = "GlowCube"
+    defaultPrim = "Glow_Cube"
     metersPerUnit = 1
     upAxis = "Y"
 )
 
-def "GlowCube" (
+def "Glow_Cube" (
     active = true
-    prepend references = @GlowCube.usdz@
+    references = @GlowCube.usdz@
 )
 {
     float3 xformOp:scale = (1, 1, 1)

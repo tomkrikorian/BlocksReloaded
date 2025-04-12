@@ -138,9 +138,28 @@
     "objectMetadataList" : [
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "Root",
-        "HollowCube",
-        "CubeEdgesOnly_Root"
+        "Transform",
+        "GlowCube"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "GlowCube",
+        "CubeWithEdges_Root_001",
+        "CubeEdges"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "GlowCube",
+        "GlowCube",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -157,8 +176,8 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "GlowCube",
-        "CubeWithEdges_Root"
+        "Glow_Cube",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -166,9 +185,27 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "GlowCube",
-        "GlowCube",
-        "_materials"
+        "Cube_Root",
+        "CubeWithEdges_Root_001",
+        "CubeEdges"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "Glow_Cube"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "Glow_Cube",
+        "CubeWithEdges_Root_001",
+        "CubeEdges"
       ],
       {
         "isExpanded" : true,
@@ -178,6 +215,15 @@
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
         "GlowCube",
         "CubeWithEdges_Root_001"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "GlowCube",
+        "CubeWithEdges_Root"
       ],
       {
         "isExpanded" : true,
@@ -205,6 +251,16 @@
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
         "Root",
         "HollowCube",
+        "CubeEdgesOnly_Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "5609C82E-2250-476A-9A01-90D4B07B7D72",
+        "Root",
+        "HollowCube",
         "Materials"
       ],
       {
@@ -213,8 +269,8 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "Transform",
-        "GlowCube"
+        "Cube_Root",
+        "_materials"
       ],
       {
         "isExpanded" : true,
@@ -222,9 +278,8 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "GlowCube",
-        "CubeWithEdges_Root_001",
-        "CubeEdges"
+        "Cube_Root",
+        "CubeWithEdges_Root_001"
       ],
       {
         "isExpanded" : true,
@@ -232,7 +287,8 @@
       },
       [
         "5609C82E-2250-476A-9A01-90D4B07B7D72",
-        "GlowCube"
+        "Glow_Cube",
+        "CubeWithEdges_Root_001"
       ],
       {
         "isExpanded" : true,

@@ -88,6 +88,9 @@ private enum ForegroundViewError: Error {
     guard let cube = try? await Entity.init(named: "GlowCube", in: realityKitContentBundle) else {
         return Entity()
     }
+    cube.scale = SIMD3(x: 0.5, y: 0.5, z: 0.5)
+    cube.position = SIMD3(x: 0, y: 0, z: 0.1)
+    cube.components.set(HoverEffectComponent())
     return cube
 }
 
@@ -147,7 +150,7 @@ struct SplashScreenForegroundView: View {
             ModelEntityFillView {
                 try await makeGraphicEntity()
             }
-            .frame(idealHeight: 130)
+            .frame(idealHeight: 50)
         }
         .frame(depth: 0)
     }

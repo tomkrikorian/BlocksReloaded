@@ -67,28 +67,12 @@ struct BlockCreatorSystem: System {
                         cube.removeFromParent()
                         blockComponent.cube = nil
                         
-                        // Create the final block in the scene
-                        guard let newBlock = AppModel.shared.createBlock(
-                            position: midpoint,
-                            orientation: orientation,
-                            scale: scale
-                        ) else {
-                            return
-                        }
-                        
-                        // Play creation sound effect
-                        do {
-                            let audioResource = try AudioFileResource.load(
-                                named: "SFX_BoxCreated",
-                                configuration: .init(shouldLoop: false)
+                        Task {
+                            await AppModel.shared.createBlock(
+                                position: midpoint,
+                                orientation: orientation,
+                                scale: scale
                             )
-                            
-                            var spatialAudio = SpatialAudioComponent()
-                            spatialAudio.gain = -5.0 // Adjust volume as needed
-                            newBlock.spatialAudio = spatialAudio
-                            newBlock.playAudio(audioResource)
-                        } catch {
-                            print("Error loading box creation audio: \(error.localizedDescription)")
                         }
                     }
                     blockComponent.state = .notCreating

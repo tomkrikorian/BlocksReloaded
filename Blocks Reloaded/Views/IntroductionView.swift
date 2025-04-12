@@ -3,6 +3,7 @@ import SwiftUI
 struct IntroductionView: View {
     
     @Environment(\.scenesManager) var scenesManager
+    @Environment(AppModel.self) private var appModel
     
     var body: some View {
         VStack(spacing: 20) {
@@ -38,6 +39,19 @@ struct IntroductionView: View {
                 }
             } label: {
                 Text("Exit Game")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .frame(minWidth: 200)
+                    .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .glassBackgroundEffect()
+            
+            Button {
+                appModel.toggleGravity()
+            } label: {
+                Text(appModel.gravity.y == 0 ? "Enable Gravity" : "Disable Gravity")
                     .font(.title3)
                     .fontWeight(.semibold)
                     .frame(minWidth: 200)
