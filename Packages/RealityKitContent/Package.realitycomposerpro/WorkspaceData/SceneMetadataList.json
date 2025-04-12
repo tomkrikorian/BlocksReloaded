@@ -200,6 +200,36 @@
       }
     ]
   },
+  "561729A4-D627-4CB0-B998-FFA06F46EE86" : {
+    "objectMetadataList" : [
+      [
+        "561729A4-D627-4CB0-B998-FFA06F46EE86",
+        "Root",
+        "Material"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "561729A4-D627-4CB0-B998-FFA06F46EE86",
+        "Root"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      },
+      [
+        "561729A4-D627-4CB0-B998-FFA06F46EE86",
+        "Root",
+        "Test"
+      ],
+      {
+        "isExpanded" : true,
+        "isLocked" : false
+      }
+    ]
+  },
   "65F6F990-A780-4474-B78B-572E0E4E273D" : {
     "objectMetadataList" : [
       [

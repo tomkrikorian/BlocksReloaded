@@ -78,6 +78,7 @@ struct ImmersiveView: View {
             }
         }
         .upperLimbVisibility(.hidden)
+        .persistentSystemOverlays(.hidden)
         .gesture(translationGesture)
         .immersiveSpaceTracker()
         .sceneTracker(for: SceneId.immersiveSpace, onOpen:{onOpen()}, onDismiss: {onDismiss()})

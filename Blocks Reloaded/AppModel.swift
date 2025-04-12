@@ -45,19 +45,30 @@ class AppModel {
         cube.orientation = orientation
         cube.scale = scale
         
-        // Add collision component
+        // Add collision component with proper collision group and mask
         cube.components[CollisionComponent.self] = CollisionComponent(
-            shapes: [.generateBox(size: scale)]
+            shapes: [.generateBox(size: scale)],
+            mode: .default
         )
         
-        // Add physics body component
+        // Add physics body component with improved physics settings
         var physics = PhysicsBodyComponent(
-            massProperties: .init(mass: 0.2),
-            material: .generate(staticFriction: 0.9, dynamicFriction: 0.8, restitution: 0.1),
+            massProperties: .init(mass: 1.0), // Increased mass for better interaction
+            material: .generate(staticFriction: 0.5, dynamicFriction: 0.4, restitution: 0.3), // Adjusted for better bouncing
             mode: .dynamic
         )
         physics.isAffectedByGravity = true
+        physics.isContinuousCollisionDetectionEnabled = true // Enable continuous collision detection
         cube.components[PhysicsBodyComponent.self] = physics
+        
+        // Add physics simulation component
+        var physicsSimulation = PhysicsSimulationComponent()
+        physicsSimulation.collisionOptions = .all
+        cube.components[PhysicsSimulationComponent.self] = physicsSimulation
+
+        var physicsMotion =  PhysicsMotionComponent()
+        cube.components[PhysicsMotionComponent.self] = physicsMotion
+
         
         cube.components.set(InputTargetComponent(allowedInputTypes: .direct))
         
