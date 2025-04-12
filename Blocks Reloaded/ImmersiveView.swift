@@ -52,6 +52,11 @@ struct ImmersiveView: View {
                 content.add(immersiveContentEntity)
             }
             
+            // Add ambient audio
+            if let audioEntity = createAmbientAudio() {
+                content.add(audioEntity)
+            }
+            
             // Add hand tracking
             makeHandEntities(in: content)
             makeBlockCreatorEntity(in: content)
@@ -79,6 +84,29 @@ struct ImmersiveView: View {
         let blockCreatorEntity = Entity()
         blockCreatorEntity.components.set(BlockInProgressComponent())
         content.add(blockCreatorEntity)
+    }
+    
+    @MainActor
+    func createAmbientAudio() -> Entity? {
+        let audioEntity = Entity()
+        
+        do {
+            // Load the audio file from RealityKitContent package
+            let audioResource = try AudioFileResource.load(
+                named: "GalacticHorizons",
+                configuration: .init(shouldLoop: true)
+            )
+            
+            var ambientAudio = AmbientAudioComponent()
+            ambientAudio.gain = -5.0 // Slightly lower volume
+            audioEntity.ambientAudio = ambientAudio
+            audioEntity.playAudio(audioResource)
+            
+            return audioEntity
+        } catch {
+            print("Error loading ambient audio: \(error.localizedDescription)")
+            return nil
+        }
     }
 }
 

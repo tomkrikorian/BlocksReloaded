@@ -120,7 +120,6 @@ struct HandTrackingSystem: System {
         }
         
         handEntity.components.set(handComponent)
-        print("Finished adding joints")
     }
     
     // ----------------------------------------------------------------
@@ -143,20 +142,16 @@ struct HandTrackingSystem: System {
         
         // If we haven't created bones yet, do it once
         if handComponent.bones.isEmpty {
-            print("🦴 Creating bones for hand: \(handComponent.chirality)")
             createBones(handComponent: &handComponent, handSkeleton: handSkeleton)
-            print("🦴 Created \(handComponent.bones.count) bones")
         }
         
         // Update bone positions and orientations
-        print("🦴 Updating \(handComponent.bones.count) bones")
         for (childJoint, boneModel) in handComponent.bones {
             // Find the parent joint for this bone
             guard let parentJoint = findParentJoint(for: childJoint),
                   let parentEntity = handComponent.fingers[parentJoint],
                   let childEntity = handComponent.fingers[childJoint],
                   let holder = boneModel.parent else {
-                print("❌ Could not find parent/child entities for bone at joint: \(childJoint)")
                 continue
             }
             
@@ -165,8 +160,6 @@ struct HandTrackingSystem: System {
             let childWorldPos = childEntity.position(relativeTo: nil)
             let worldDirection = childWorldPos - parentWorldPos
             let distance = simd_length(worldDirection)
-            
-            print("🦴 Updating bone for \(childJoint): distance=\(distance)")
             
             // Update the holder's position and orientation in world space
             holder.position = parentWorldPos
@@ -257,17 +250,12 @@ struct HandTrackingSystem: System {
             (.littleFingerIntermediateTip, .littleFingerTip)
         ]
         
-        print("🦴 Starting bone creation with \(boneConnections.count) connections")
-        
         for (parentJoint, childJoint) in boneConnections {
             guard let parentEntity = handComponent.fingers[parentJoint],
                   let childEntity = handComponent.fingers[childJoint],
                   let handEntity = parentEntity.parent else {
-                print("❌ Could not find entities for bone connection: \(parentJoint) -> \(childJoint)")
                 continue
             }
-            
-            print("🦴 Creating bone: \(parentJoint) -> \(childJoint)")
             
             // Create a cylinder to represent the bone
             let boneMaterial = UnlitMaterial(color: .white)
@@ -286,8 +274,6 @@ struct HandTrackingSystem: System {
             let worldDirection = childWorldPos - parentWorldPos
             let distance = simd_length(worldDirection)
             
-            print("🦴 Bone distance: \(distance)")
-            
             // Position the holder at the parent joint in world space
             holder.position = parentWorldPos
             
@@ -303,10 +289,7 @@ struct HandTrackingSystem: System {
             
             holder.addChild(boneModel)
             handComponent.bones[childJoint] = boneModel
-            print("🦴 Successfully created bone for \(childJoint)")
         }
-        
-        print("🦴 Finished creating bones. Total bones created: \(handComponent.bones.count)")
     }
     
     // ----------------------------------------------------------------
@@ -398,6 +381,21 @@ struct HandTrackingSystem: System {
                     mesh: try! MeshResource(extruding: circlePath, extrusionOptions: extrusionOptions),
                     materials: [material]
                 )
+                
+                // Add audio component to the circle
+                do {
+                    let audioResource = try AudioFileResource.load(
+                        named: "SFX_RingLoop",
+                        configuration: .init(shouldLoop: true)
+                    )
+                    
+                    var spatialAudio = SpatialAudioComponent()
+                    spatialAudio.gain = -10.0 // Lower volume for SFX
+                    circle.spatialAudio = spatialAudio
+                    circle.playAudio(audioResource)
+                } catch {
+                    print("Error loading ring loop audio: \(error.localizedDescription)")
+                }
                 
                 entity.addChild(circle)
                 handComponent.pinchSphere = circle

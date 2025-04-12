@@ -2,10 +2,10 @@
   "advancedEditorSelectedIdentifier" : "ProjectBrowser",
   "openSceneRelativePaths" : [
     "Immersive.usda",
-    "GlowHollowCube.usda",
     "GlowMaterial.usda",
     "HollowCube.usda",
-    "GlowCube.usda"
+    "GlowCube.usda",
+    "Audio.usda"
   ],
   "recentIdentifiers" : {
     "1D572CEB-057A-41C3-B575-04C37501A3C0" : [
@@ -566,5 +566,5 @@
   "sceneViewportBackgroundColors" : {
 
   },
-  "selectedSceneRelativePath" : "Immersive.usda"
+  "selectedSceneRelativePath" : "Audio.usda"
 }
