@@ -40,18 +40,18 @@ private enum ForegroundViewError: Error {
 
 /// Creates the `ModelEntity` for the 3D text "RealityKit Drawing App" in a customized layout and font.
 @MainActor private func makeTextEntity() async throws -> ModelEntity {
-    // Create an `AttributedString`, `"RealityKit"`.
+    // Create an `AttributedString`, `"Blocks"`.
     var textString = AttributedString("Blocks")
     
     // Set the font to 8 pt.
-    textString.font = .systemFont(ofSize: 8.0)
+    textString.font = .systemFont(ofSize: 14.0)
     
     // Load a font for the text "Drawing App".
-    guard let drawingAppFont = UIFont(name: "ArialRoundedMTBold", size: 14.0) else {
+    guard let drawingAppFont = UIFont(name: "ArialRoundedMTBold", size: 8.0) else {
         throw ForegroundViewError.cannotFindFont
     }
     
-    // Create an `AttributedString`, `"Drawing App"`, with the loaded font.
+    // Create an `AttributedString`, `"Reloaded"`, with the loaded font.
     let attributes = AttributeContainer([.font: drawingAppFont])
     textString.append(AttributedString("\nReloaded", attributes: attributes))
     
