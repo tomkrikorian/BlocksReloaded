@@ -6,9 +6,9 @@ Blocks Reloaded is inspired by the original Leap Motion's Blocks demo. The goal 
 
 Blocks Reloaded lets you create Blocks (currently only cubes) with hand gestures that you can stack on top each other and is a great demonstration of what's possible with the physics engine available in RealityKit.
 
-## 🏆 VisionDevCamp 2025
+## 🏆 VisionDevCamp 2025 - Best Seed Award 👑
 
-This project was created for the visionOS hackathon during VisionDevCamp 2025.
+This project was created for the visionOS hackathon during VisionDevCamp 2025. It received the Best Seed award!
 
 ## 💻 Development
 
