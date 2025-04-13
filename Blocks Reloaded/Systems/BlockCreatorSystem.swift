@@ -41,7 +41,7 @@ struct BlockCreatorSystem: System {
                 
                 if let cube = blockComponent.cube {
                     // Calculate cube properties
-                    let distance = simd_distance(AppModel.shared.leftPinchPosition, AppModel.shared.rightPinchPosition)
+                    let distance = simd_distance(AppModel.shared.leftPinchPosition, AppModel.shared.rightPinchPosition) * 2
                     let midpoint = (AppModel.shared.leftPinchPosition + AppModel.shared.rightPinchPosition) * 0.5
                     let direction = normalize(AppModel.shared.rightPinchPosition - AppModel.shared.leftPinchPosition)
                     let orientation = simd_quatf(from: SIMD3<Float>(0, 0, 1), to: direction)
