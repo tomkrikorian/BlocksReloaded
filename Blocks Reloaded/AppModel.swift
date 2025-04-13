@@ -7,7 +7,7 @@
 
 import SwiftUI
 import RealityKit
-import RealityKitContent
+import BlocksContent
 
 /// Maintains app-wide state
 @MainActor
@@ -51,7 +51,7 @@ class AppModel {
         guard let root = sceneRootEntity else { return nil }
         
         // Create a cube entity from the GlowCube scene
-        guard let cube = try? await Entity.init(named: "GlowCube", in: realityKitContentBundle) else {
+        guard let cube = try? await Entity.init(named: "GlowCube", in: blocksContentBundle) else {
             return nil
         }
         

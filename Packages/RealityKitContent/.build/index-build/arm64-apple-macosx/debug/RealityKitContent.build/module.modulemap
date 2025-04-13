@@ -1,4 +1,0 @@
-module RealityKitContent {
-    header "/Users/tomkrikorian/Documents/git/Blocks Reloaded/Packages/RealityKitContent/.build/index-build/arm64-apple-macosx/debug/RealityKitContent.build/RealityKitContent-Swift.h"
-    requires objc
-}

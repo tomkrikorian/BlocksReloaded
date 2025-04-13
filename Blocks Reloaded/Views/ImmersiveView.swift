@@ -7,7 +7,7 @@
 
 import SwiftUI
 import RealityKit
-import RealityKitContent
+import BlocksContent
 import ScenesManager
 
 struct ImmersiveView: View {
@@ -57,7 +57,7 @@ struct ImmersiveView: View {
             content.add(rootEntity)
             
             // Add the initial RealityKit content
-            if let immersiveContentEntity = try? await Entity(named: "Immersive", in: realityKitContentBundle) {
+            if let immersiveContentEntity = try? await Entity(named: "Immersive", in: blocksContentBundle) {
                 rootEntity.addChild(immersiveContentEntity)
             }
             

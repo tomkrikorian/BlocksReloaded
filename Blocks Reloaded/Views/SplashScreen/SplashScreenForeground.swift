@@ -10,7 +10,7 @@ Functions and SwiftUI views to build the foreground of the splash screen.
 
 import SwiftUI
 import RealityKit
-import RealityKitContent
+import BlocksContent
 
 /// Material used for the front face of the logomark.
 @MainActor private let logomarkMaterial: PhysicallyBasedMaterial = {
@@ -85,7 +85,7 @@ private enum ForegroundViewError: Error {
 /// Creates the `ModelEntity` for the 3D logomark.
 @MainActor private func makeGraphicEntity() async throws -> Entity {
     // Create a cube entity from the GlowCube scene
-    guard let cube = try? await Entity.init(named: "GlowCube", in: realityKitContentBundle) else {
+    guard let cube = try? await Entity.init(named: "GlowCube", in: blocksContentBundle) else {
         return Entity()
     }
     cube.scale = SIMD3(x: 0.5, y: 0.5, z: 0.5)

@@ -6,7 +6,7 @@
 //
 
 import RealityKit
-import RealityKitContent
+import BlocksContent
 import SwiftUI
 
 /// A system that handles the creation of blocks between hands
@@ -31,7 +31,7 @@ struct BlockCreatorSystem: System {
                 // Create or update the cube
                 if blockComponent.cube == nil {
                     // Create a cube entity from the HollowCube scene
-                    guard let cube = try? Entity.load(named: "HollowCube", in: realityKitContentBundle) else {
+                    guard let cube = try? Entity.load(named: "HollowCube", in: blocksContentBundle) else {
                         return
                     }
                     

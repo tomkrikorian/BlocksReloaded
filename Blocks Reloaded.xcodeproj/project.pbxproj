@@ -7,13 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		826B6C992DA94D8100679EC0 /* RealityKitContent in Frameworks */ = {isa = PBXBuildFile; productRef = 826B6C982DA94D8100679EC0 /* RealityKitContent */; };
+		820EF2392DAB98A800D060A6 /* BlocksContent in Frameworks */ = {isa = PBXBuildFile; productRef = 820EF2382DAB98A800D060A6 /* BlocksContent */; };
 		82BEEC872DAADC24003521DA /* ScenesManager in Frameworks */ = {isa = PBXBuildFile; productRef = 82BEEC862DAADC24003521DA /* ScenesManager */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		826B6C932DA94D8100679EC0 /* Blocks Reloaded.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Blocks Reloaded.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		826B6C972DA94D8100679EC0 /* RealityKitContent */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = RealityKitContent; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -42,7 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				826B6C992DA94D8100679EC0 /* RealityKitContent in Frameworks */,
+				820EF2392DAB98A800D060A6 /* BlocksContent in Frameworks */,
 				82BEEC872DAADC24003521DA /* ScenesManager in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -54,7 +53,6 @@
 			isa = PBXGroup;
 			children = (
 				826B6C952DA94D8100679EC0 /* Blocks Reloaded */,
-				826B6C962DA94D8100679EC0 /* Packages */,
 				826B6C942DA94D8100679EC0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,14 +63,6 @@
 				826B6C932DA94D8100679EC0 /* Blocks Reloaded.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		826B6C962DA94D8100679EC0 /* Packages */ = {
-			isa = PBXGroup;
-			children = (
-				826B6C972DA94D8100679EC0 /* RealityKitContent */,
-			);
-			path = Packages;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -95,8 +85,8 @@
 			);
 			name = "Blocks Reloaded";
 			packageProductDependencies = (
-				826B6C982DA94D8100679EC0 /* RealityKitContent */,
 				82BEEC862DAADC24003521DA /* ScenesManager */,
+				820EF2382DAB98A800D060A6 /* BlocksContent */,
 			);
 			productName = "Blocks Reloaded";
 			productReference = 826B6C932DA94D8100679EC0 /* Blocks Reloaded.app */;
@@ -128,6 +118,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				82BEEC852DAADC24003521DA /* XCRemoteSwiftPackageReference "ScenesManager" */,
+				820EF2372DAB98A800D060A6 /* XCLocalSwiftPackageReference "Packages/BlocksContent" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 826B6C942DA94D8100679EC0 /* Products */;
@@ -356,6 +347,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		820EF2372DAB98A800D060A6 /* XCLocalSwiftPackageReference "Packages/BlocksContent" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/BlocksContent;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		82BEEC852DAADC24003521DA /* XCRemoteSwiftPackageReference "ScenesManager" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -368,9 +366,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		826B6C982DA94D8100679EC0 /* RealityKitContent */ = {
+		820EF2382DAB98A800D060A6 /* BlocksContent */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = RealityKitContent;
+			productName = BlocksContent;
 		};
 		82BEEC862DAADC24003521DA /* ScenesManager */ = {
 			isa = XCSwiftPackageProductDependency;
